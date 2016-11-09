@@ -10,10 +10,7 @@
 Array2D AllocateArray2D(void) {
     Array2D array = (Array2D)malloc(sizeof(Array2DStruct));
 
-    if (array == NULL) {
-        //out of memory
-        return (Array2D)NULL;
-    }
+    if (array == NULL) return (Array2D)NULL;
 
     return array;
 }

@@ -18,8 +18,8 @@
 #endif // 2D_ARRAY_DEFINITIONS
 
 // [ --- Variable types --- ]
-typedef json_t *Json_ptr;
-typedef void *Array_t;
+typedef json_t* Json_ptr;
+typedef void* Array_t;
 typedef int boolean;
 
 // [ --- Struct types --- ]
