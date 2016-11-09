@@ -15,6 +15,8 @@ int main(int argc, char *argv[]) {
         printf("Board not created!\n");
     }
 
+
+
     printf("\nCandy 1: %d\n", GetCandy(board, 0));
     printf("\nCandy 2: %d\n", GetCandy(board, 1));
 
