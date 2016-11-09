@@ -96,7 +96,7 @@ boolean GetElement(Array2D array, int idx, Array_t *ptr) {
         return false;
     }
 
-    ptr = array->data[idx];
+    *ptr = array->data[idx];
     return true;
 }
 
