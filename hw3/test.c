@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
 
     printf("array address: %p\n", &board->array_ptr->data[0]);
 
-    //printf("\nCandy 1: %d\n", GetCandy(board, 0));
+    printf("\nCandy 1: %d\n", GetCandy(board, 0));
     //printf("\nCandy 2: %d\n", GetCandy(board, 1));
 
     //Swap(board->array_ptr, 0, 1);

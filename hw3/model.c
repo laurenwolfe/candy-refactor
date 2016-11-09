@@ -183,6 +183,7 @@ int GetCandy(BoardPtr gameboard, int idx) {
     if(gameboard->array_ptr != NULL && idx < GetSize(gameboard->array_ptr)) {
         GetElement(gameboard->array_ptr, idx, ptr);
         val = *ptr;
+        printf("val: %d\n", val);
     } else {
         val = NO_CANDY;
     }
