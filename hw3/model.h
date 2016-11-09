@@ -20,6 +20,7 @@ boolean DestroyBoard(BoardPtr gameboard, payloadFreeFunctionPtr freeFnPtr);
 void SetSelectedCandy(BoardPtr gameboard, int idx);
 int GetSelectedCandy(BoardPtr gameboard);
 boolean SwapCandy(BoardPtr gameboard, char dir);
+boolean IsValidSwap(BoardPtr gameboard, int idx1, int idx2);
 
 int GetMoves(BoardPtr gameboard);
 void DecrementMoves(BoardPtr gameboard);
