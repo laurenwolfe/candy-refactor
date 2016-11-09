@@ -179,7 +179,7 @@ int GetCandy(BoardPtr gameboard, int idx) {
 
     if(gameboard->array_ptr != NULL && idx < GetSize(gameboard->array_ptr)) {
         GetElement(gameboard->array_ptr, idx, ptr);
-        val = (int)*ptr;
+        val = *ptr;
     } else {
         val = NO_CANDY;
     }
