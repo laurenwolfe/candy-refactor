@@ -15,9 +15,6 @@ int main(int argc, char *argv[]) {
         printf("Board not created!\n");
     }
 
-    printf("rows: %d\n", board->array_ptr->num_rows);
-    printf("cols: %d\n", board->array_ptr->num_cols);
-    printf("size of array: %d\n", sizeof(*(board->array_ptr->data)));
     printf("array address: %p\n", &board->array_ptr->data[0]);
 
     //printf("\nCandy 1: %d\n", GetCandy(board, 0));
