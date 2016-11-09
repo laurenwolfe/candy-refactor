@@ -45,7 +45,7 @@ void Deserialize(Array2D array, char *filepath,
 void Serialize(Array2D array, char *filepath,
                ElSerializeFnPtr serialize_function);
 
-void GetElement(Array2D array, int idx, Array_t ptr);
+boolean GetElement(Array2D array, int idx, Array_t ptr);
 
 boolean SetElement(Array2D array, int idx, Array_t setElem);
 
