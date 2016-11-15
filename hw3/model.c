@@ -185,7 +185,6 @@ int GetCandy(BoardPtr gameboard, int idx) {
 
         GetElement(gameboard->array_ptr, 1, &ptr);
         printf("val3: %d\n", *ptr);
-        printf("val4: %d\n", ptr);
     } else {
         val = NO_CANDY;
     }
