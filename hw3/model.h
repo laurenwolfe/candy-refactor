@@ -5,7 +5,6 @@
 
 #define MOVES 30
 #define NO_CANDY (-1)
-//#define N No
 
 typedef struct board {
     Array2D array_ptr;

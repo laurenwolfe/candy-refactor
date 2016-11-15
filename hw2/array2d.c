@@ -90,13 +90,15 @@ void Serialize(Array2D array, char *filepath,
 }
 
 // Returns a pointer to the element at the specified index
-boolean GetElement(Array2D array, int idx, Array_t *ptr) {
+boolean GetElement(Array2D array, int idx, Array_t ptr) {
     if(array == NULL || ptr == NULL ||
             idx < 0 || idx >= array->size) {
         return false;
     }
 
-    *ptr = array->data[idx];
+    printf("data: %d\n", (int)(array->data[idx]));
+
+    ptr = &array->data[idx];
     return true;
 }
 
