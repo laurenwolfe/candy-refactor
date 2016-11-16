@@ -188,19 +188,13 @@ int GetCandy(BoardPtr gameboard, int idx) {
     //free(ptr);
     return val;
 */
-    int *ptr1, *ptr2;
+    int *ptr1;
 
     ptr1 = (int *)malloc(sizeof(int *));
-    ptr2 = (int *)malloc(sizeof(int *));
-
 
     ptr1 = (int *)GetEl(gameboard->array_ptr, idx);
-    //*ptr2 = *(int*)GetEl(gameboard->array_ptr, idx);
 
     printf("ptr1: %d", (int)ptr1);
-    printf("*ptr1: %d", *ptr1);
-    //printf("ptr2: %x", (int)ptr2);
-    //printf("*ptr2: %d", *ptr2);
 
     return 0;
 
