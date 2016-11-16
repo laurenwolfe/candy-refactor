@@ -137,7 +137,6 @@ void DeserializeFunction(Array2D array, Json_ptr data) {
 }
 
 // Serialize data from the Array2D and write to file
-// TODO: Not sure what this return is for, look into it
 Json_ptr SerializeFunction(Array2D array) {
     Json_ptr data_arr, value;
     int element;
