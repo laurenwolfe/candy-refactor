@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
 
     int *candy1 = (int *) malloc(sizeof(int *));
 
-    GetC(board, 0, candy1);
+    GetCandy(board, 0, candy1);
 
     printf("\nCandy 1: %d\n", *candy1);
 
