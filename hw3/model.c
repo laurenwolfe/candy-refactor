@@ -202,4 +202,6 @@ int GetCandy(BoardPtr gameboard, int idx) {
     printf("ptr2: %x", ptr2);
     printf("ptr2: %d", ptr2);
 
+    return 0;
+
 }

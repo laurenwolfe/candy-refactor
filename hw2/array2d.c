@@ -101,7 +101,7 @@ boolean GetElement(Array2D array, int idx, Array_t *ptr) {
     return true;
 }
 
-void *GetEl(Array2D array, int idx) {
+Array_t GetEl(Array2D array, int idx) {
     if(array == NULL || idx < 0 || idx >= array->size) {
         printf("failing in GetElement");
         return (void *)NULL;
