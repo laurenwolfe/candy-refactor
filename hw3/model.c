@@ -155,9 +155,7 @@ Json_ptr SerializeFunction(Array2D array) {
 
 // Would free memory in the case of using pointers, but we're storing ints in the array.
 // Therefore, this function doesn't need to perform any action.
-void FreeFunction(Array_t pointer) {
-
-}
+void FreeFunction(Array_t pointer) { }
 
 // Returns the height (number of elements) of the Board
 int GetRowLength(BoardPtr gameboard) {
@@ -172,5 +170,5 @@ int GetColLength(BoardPtr gameboard) {
 // Get value of candy at the provided index.
 // Returns the candy type (represented by int) if
 void GetCandy(BoardPtr gameboard, int idx, int *candy_ptr) {
-    *candy_ptr = (int)GetEl(gameboard->array_ptr, idx);
+    *candy_ptr = (int)GetElement(gameboard->array_ptr, idx);
 }

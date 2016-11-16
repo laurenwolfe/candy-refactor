@@ -89,21 +89,7 @@ void Serialize(Array2D array, char *filepath,
     json_decref(json_str);
 }
 
-// Returns a pointer to the element at the specified index
-/*
-boolean GetElement(Array2D array, int idx, Array_t *ptr) {
-    if(array == NULL || ptr == NULL ||
-            idx < 0 || idx >= array->size) {
-        printf("failing in GetElement");
-        return false;
-    }
-
-    *ptr = array->data[idx];
-    return true;
-}
-*/
-
-Array_t GetEl(Array2D array, int idx) {
+Array_t GetElement(Array2D array, int idx) {
     if(array == NULL || idx < 0 || idx >= array->size) {
         return (void *)NULL;
     }
