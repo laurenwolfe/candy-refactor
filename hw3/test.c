@@ -8,7 +8,7 @@ int main(int argc, char *argv[]) {
 
     board = CreateBoard("test.json");
 
-    int candy1;
+    int candy1 = 0;
 
     GetC(board, 0, &candy1);
 
