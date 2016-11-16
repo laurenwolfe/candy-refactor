@@ -172,5 +172,5 @@ int GetColLength(BoardPtr gameboard) {
 // Get value of candy at the provided index.
 // Returns the candy type (represented by int) if
 void GetCandy(BoardPtr gameboard, int idx, int *candy_ptr) {
-    *candy_ptr = (int*)GetEl(gameboard->array_ptr, idx);
+    *candy_ptr = (int)GetEl(gameboard->array_ptr, idx);
 }
