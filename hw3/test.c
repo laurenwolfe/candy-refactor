@@ -14,13 +14,13 @@ int main(int argc, char *argv[]) {
     GetCandy(board, 0, candy1);
     GetCandy(board, 1, candy2);
 
-    printf("\nCandy 1: %d\n", *candy1);
-    printf("\nCandy 2: %d\n", *candy2);
+    printf("Candy 1: %d\n", *candy1);
+    printf("Candy 2: %d\n", *candy2);
 
-    //Swap(board->array_ptr, 0, 1);
+    Swap(board->array_ptr, 0, 1);
 
-    //printf("Swapped candy 1: %d\n", GetCandy(board, 0));
-    //printf("Swapped candy 2: %d\n", GetCandy(board, 1));
+    printf("Swapped candy 1: %d\n", GetCandy(board, 0, candy1));
+    printf("Swapped candy 2: %d\n", GetCandy(board, 1, candy2));
 
     free(candy1);
     free(candy2);
