@@ -47,6 +47,8 @@ void Serialize(Array2D array, char *filepath,
 
 boolean GetElement(Array2D array, int idx, Array_t *ptr);
 
+void *GetEl(Array2D array, int idx);
+
 boolean SetElement(Array2D array, int idx, Array_t setElem);
 
 boolean Swap(Array2D array, int idx1, int idx2);
