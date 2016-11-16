@@ -8,7 +8,7 @@ int main(int argc, char *argv[]) {
 
     board = CreateBoard("test.json");
 
-    int *candy1 = (int *) malloc(sizeof(int *));
+    int *candy1 = (int *)malloc(sizeof(int *));
 
     GetCandy(board, 0, candy1);
 
