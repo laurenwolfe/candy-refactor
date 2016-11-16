@@ -178,13 +178,12 @@ int GetCandy(BoardPtr gameboard, int idx) {
     ptr = (int *)malloc(sizeof(int *));
 
     if(gameboard->array_ptr != NULL) { //&& idx < GetSize(gameboard->array_ptr)) {
-        GetElement(gameboard->array_ptr, 6, ptr);
+        GetElement(gameboard->array_ptr, 0, &ptr);
         val = *ptr;
-        printf("val1: %d\n", *(int*)ptr);
-        printf("val2: %d\n", (int*)ptr);
-
-        GetElement(gameboard->array_ptr, 1, &ptr);
-        printf("val3: %d\n", *ptr);
+        printf("ptr plain: %p\n", ptr);
+        printf("ptr cast: %p\n", (int *)ptr);
+        printf("ptr cast2: %d\n", (int *)ptr);
+        printf("ptr cast and deref: %d\n", *(int *)ptr);
     } else {
         val = NO_CANDY;
     }
