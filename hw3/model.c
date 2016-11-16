@@ -1,7 +1,7 @@
 #include <gtk/gtk.h>
 #include <jansson.h>
 
-#include "../hw2/array2d.h"
+#include <array2d.h>
 #include "model.h"
 
 BoardPtr CreateBoard(char *filename) {

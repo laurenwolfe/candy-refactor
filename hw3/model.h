@@ -1,7 +1,7 @@
 #ifndef _GAMEBOARD_H_
 #define _GAMEBOARD_H_
 
-#include "../hw2/array2d.h"
+#include <array2d.h>
 
 #define MOVES 30
 #define NO_CANDY (-1)
