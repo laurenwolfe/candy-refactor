@@ -31,6 +31,6 @@ void FreeFunction(Array_t pointer);
 
 int GetRowLength(BoardPtr gameboard);
 int GetColLength(BoardPtr gameboard);
-int GetCandy(BoardPtr gameboard, int idx);
+int *GetCandy(BoardPtr gameboard, int idx);
 
 #endif // _GAMEBOARD_H_
