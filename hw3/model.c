@@ -176,7 +176,7 @@ int *GetCandy(BoardPtr gameboard, int idx) {
 
     ptr1 = (int *)malloc(sizeof(int *));
 
-    *ptr1 = (int)*GetEl(gameboard->array_ptr, idx);
+    *ptr1 = *(int*)GetEl(gameboard->array_ptr, idx);
 
     return ptr1;
 
