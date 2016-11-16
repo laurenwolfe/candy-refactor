@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
 
     GetC(board, 0, candy1);
 
-    printf("\nCandy 1: %d\n", candy1);
+    printf("\nCandy 1: %d\n", *candy1);
 
     //printf("\nCandy 2: %d\n", GetCandy(board, 1));
 
