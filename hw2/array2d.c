@@ -96,8 +96,6 @@ boolean GetElement(Array2D array, int idx, Array_t ptr) {
         return false;
     }
 
-    printf("data: %d\n", (int)(array->data[idx]));
-
     ptr = &array->data[idx];
     return true;
 }
