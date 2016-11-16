@@ -1,6 +1,5 @@
 #include <gtk/gtk.h>
 #include <jansson.h>
-//#include <array2d.h>
 
 #include "model.h"
 
@@ -8,12 +7,6 @@ int main(int argc, char *argv[]) {
     BoardPtr board;
 
     board = CreateBoard("test.json");
-
-    if(board != NULL) {
-        printf("Board created!\n");
-    } else {
-        printf("Board not created!\n");
-    }
 
     printf("\nCandy 1: %d\n", GetCandy(board, 0));
     //printf("\nCandy 2: %d\n", GetCandy(board, 1));
