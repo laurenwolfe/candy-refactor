@@ -5,17 +5,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifndef __2D_ARRAY_DEFINITIONS__
-#define __2D_ARRAY_DEFINITIONS__
-
-// converts convert row and column to corresponding array index
-#define indexofArray(arr, row, col) ((row) * (arr->num_cols) + (col))
-
 // boolean values
 #define true 1
 #define false 0
-
-#endif // 2D_ARRAY_DEFINITIONS
 
 // [ --- Variable types --- ]
 typedef json_t* Json_ptr;
@@ -45,7 +37,7 @@ void Deserialize(Array2D array, char *filepath,
 void Serialize(Array2D array, char *filepath,
                ElSerializeFnPtr serialize_function);
 
-boolean GetElement(Array2D array, int idx, Array_t *ptr);
+//boolean GetElement(Array2D array, int idx, Array_t *ptr);
 
 Array_t GetEl(Array2D array, int idx);
 
