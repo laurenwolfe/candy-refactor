@@ -172,30 +172,13 @@ int GetColLength(BoardPtr gameboard) {
 // Get value of candy at the provided index.
 // Returns the candy type (represented by int) if
 int GetCandy(BoardPtr gameboard, int idx) {
-/*
-    int val;
-    int *ptr;
-
-    ptr = (int *)malloc(sizeof(int *));
-
-    if(gameboard->array_ptr != NULL) { //&& idx < GetSize(gameboard->array_ptr)) {
-        GetElement(gameboard->array_ptr, idx, &ptr);
-        val = *ptr;
-    } else {
-        val = NO_CANDY;
-    }
-
-    //free(ptr);
-    return val;
-*/
-    int *ptr1;
+    int *ptr1, candy;
 
     ptr1 = (int *)malloc(sizeof(int *));
-
     ptr1 = (int *)GetEl(gameboard->array_ptr, idx);
+    candy = (int)ptr1;
 
-    printf("ptr1: %d", (int)ptr1);
+    free(ptr1);
 
-    return 0;
-
+    return candy;
 }
