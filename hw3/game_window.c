@@ -55,7 +55,7 @@ void fill_window(GtkApplication *app) {
 
     candy = (int *)malloc(sizeof(int *));
 
-    for(int i = 0; i < GetSize(gameboard); i++) {
+    for(int i = 0; i < GetBoardSize(gameboard); i++) {
         row = GetRow(gameboard, i);
         col = GetCol(gameboard, i);
 
