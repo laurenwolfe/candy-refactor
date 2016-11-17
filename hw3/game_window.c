@@ -3,6 +3,7 @@ TODO: Write class description
 */
 
 #include "game_window.h"
+#include "model.h"
 
 // ------------------------------------------------------------
 // Button callback functions
@@ -56,7 +57,8 @@ void fill_window(GtkApplication *app) {
     for(int i = 0; i < GetSize(gameboard); i++) {
         row = GetRow(gameboard, i);
         col = GetCol(gameboard, i);
-        candy = GetCandy(gameboard, i, candy);
+
+        GetCandy(gameboard, i, candy);
 
         // create button, image and place in grid
         GtkWidget* currButton = buttonArray[i];
