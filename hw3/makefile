@@ -1,5 +1,5 @@
-SRC=test.c model.c
-HEADERS=model.h
+SRC=model.c game_window.c
+HEADERS=model.h game_window.h
 LIBS=../hw2/libhw2.a
 CFLAGS = -Wall -Wpedantic -std=c11 -Wno-pointer-to-int-cast
 IFLAGS =  -I../hw2 -I../jansson/include
