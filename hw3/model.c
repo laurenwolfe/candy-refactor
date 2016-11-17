@@ -37,16 +37,20 @@ BoardPtr AllocateBoard(void) {
 
 // Frees memory allocated for Board struct and its data Array.
 // Returns true if successfully freed, false otherwise.
-boolean DestroyBoard(BoardPtr gameboard, payloadFreeFunctionPtr freeFnPtr) {
+boolean DestroyBoard(BoardPtr gameboard) {
     boolean array_destroyed;
 
-    if(gameboard == NULL || freeFnPtr == NULL) return false;
+    if(gameboard == NULL) {
+        return false;
+    }
 
-    array_destroyed = DestroyArray2D(gameboard->array_ptr, freeFnPtr);
+    array_destroyed = DestroyArray2D(gameboard->array_ptr, &FreeFunction);
 
     // Only free gameboard if array is successfully destroyed, otherwise
     // we lose reference to it.
-    if(array_destroyed) free(gameboard);
+    if(array_destroyed) {
+        free(gameboard);
+    }
 
     return array_destroyed;
 }
@@ -164,6 +168,18 @@ int GetRowLength(BoardPtr gameboard) {
 // Returns the width (number of elements) of the board
 int GetColLength(BoardPtr gameboard) {
     return GetNumCols(gameboard->array_ptr);
+}
+
+int GetBoardSize(BoardPtr gameboard) {
+    return GetSize(gameboard->array_ptr);
+}
+
+int GetRow(BoardPtr gameboard, int i) {
+    return i / GetRowLength(gameboard);
+}
+
+int GetCol(BoardPtr gameboard, int i) {
+    return i % GetRowLength(gameboard);
 }
 
 // Get value of candy at the provided index.
