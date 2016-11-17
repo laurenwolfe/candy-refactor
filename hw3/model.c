@@ -79,7 +79,7 @@ int GetMoves(BoardPtr gameboard) {
 
 //Swap the position of two candies
 boolean SwapCandy(BoardPtr gameboard, char dir) {
-    int idx1, idx2;
+    int idx1, idx2, row, col;
 
     //Validate input, verify that a candy has been selected and moves remain
     if(gameboard == NULL || gameboard->selected_idx == NO_CANDY ||
@@ -103,8 +103,12 @@ boolean SwapCandy(BoardPtr gameboard, char dir) {
         return false;
     }
 
+    row = GetRow(gameboard, idx2);
+    col = GetCol(gameboard, idx2);
+
     //Ensure that move is legal
-    if(idx2 < 0 || idx2 >= GetSize(gameboard->array_ptr)) {
+    if(idx2 < 0 || row >= GetRowLength(gameboard) ||
+            col >= GetColLength(gameboard)) {
         return false;
     }
 
