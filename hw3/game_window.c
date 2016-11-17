@@ -11,6 +11,7 @@ TODO: Write class description
 static void d_button_callback(GtkWidget* widget, gpointer data) {
     char DIRECTION_CHARS[] = {'N', 'W', 'E', 'S'}; // remove this if it can be defined elsewhere
     boolean swapResult = SwapCandy(gameboard, DIRECTION_CHARS[(int)data]);
+    printf("swapRes: %d", swapResult);
     refresh_window(app);
 }
 
