@@ -11,21 +11,21 @@
 // GLOBALS --------------------------------------------------------
 GtkApplication* app;
 static BoardPtr gameboard;
-char *PATH = "img/";
 
 static char* dbutton_image_filenames[] = {
-        PATH + "up_arrow.png",
-        PATH + "left_arrow.png",
-        PATH + "right_arrow.png",
-        PATH + "down_arrow.png"
+        "img/up_arrow.png",
+        "img/left_arrow.png",
+        "img/right_arrow.png",
+        "img/down_arrow.png"
 };
+
 static char* candy_image_filenames[] = {
-        PATH + "candy0.png",
-        PATH + "candy1.png",
-        PATH + "candy2.png",
-        PATH + "candy3.png",
-        PATH + "candy4.png",
-        PATH + "candy5.png"
+        "img/candy0.png",
+        "img/candy1.png",
+        "img/candy2.png",
+        "img/candy3.png",
+        "img/candy4.png",
+        "img/candy5.png"
 };
 // END_GLOBALS ----------------------------------------------------
 
