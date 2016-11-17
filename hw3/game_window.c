@@ -33,7 +33,7 @@ void fill_window(GtkApplication *app) {
     char remaining_moves[256];
     int *candy, row, col;
     GtkWidget* imageArray[]; // candy images
-    GtkWidget* buttonArray[GetSize(gameboard)]; // candy buttons
+    GtkWidget* buttonArray[GetBoardSize(gameboard)]; // candy buttons
 
     sprintf(remaining_moves, "Moves left: %d", GetMoves(gameboard));
 
