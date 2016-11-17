@@ -33,7 +33,7 @@ void make_window(GtkApplication* app) {
 void fill_window(GtkApplication *app) {
     char remaining_moves[256];
     int *candy, row, col;
-    GtkWidget* imageArray[]; // candy images
+    GtkWidget* imageArray[GetBoardSize(gameboard)]; // candy images
     GtkWidget* buttonArray[GetBoardSize(gameboard)]; // candy buttons
 
     sprintf(remaining_moves, "Moves left: %d", GetMoves(gameboard));
@@ -56,8 +56,8 @@ void fill_window(GtkApplication *app) {
     candy = (int *)malloc(sizeof(int *));
 
     for(int i = 0; i < GetBoardSize(gameboard); i++) {
-        row = GetRow(gameboard, i);
-        col = GetCol(gameboard, i);
+        row = GetRowLength(gameboard, i);
+        col = GetColLength(gameboard, i);
 
         GetCandy(gameboard, i, candy);
 
