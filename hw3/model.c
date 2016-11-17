@@ -40,7 +40,7 @@ BoardPtr AllocateBoard(void) {
 boolean DestroyBoard(BoardPtr gameboard) {
     boolean array_destroyed;
 
-    if(gameboard == NULL || freeFnPtr == NULL) {
+    if(gameboard == NULL) {
         return false;
     }
 
@@ -170,7 +170,7 @@ int GetColLength(BoardPtr gameboard) {
     return GetNumCols(gameboard->array_ptr);
 }
 
-int GetSize(BoardPtr gameboard) {
+int GetBoardSize(BoardPtr gameboard) {
     return GetSize(gameboard->array_ptr);
 }
 
