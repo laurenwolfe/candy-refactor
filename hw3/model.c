@@ -1,7 +1,3 @@
-#include <gtk/gtk.h>
-#include <jansson.h>
-#include <array2d.h>
-
 #include "model.h"
 
 BoardPtr CreateBoard(char *filename) {
@@ -115,6 +111,7 @@ boolean SwapCandy(BoardPtr gameboard, char dir) {
     // Return true if swap is a valid move and executes successfully
     if(IsValidSwap(gameboard, idx1, idx2) &&
             Swap(gameboard->array_ptr, idx1, idx2)) {
+        gameboard->moves--;
         return true;
     }
     return false;
@@ -174,12 +171,14 @@ int GetBoardSize(BoardPtr gameboard) {
     return GetSize(gameboard->array_ptr);
 }
 
-int GetRow(BoardPtr gameboard, int i) {
-    return i / GetRowLength(gameboard);
+// converts an index into its corresponding row
+int GetRow(BoardPtr gameboard, int idx) {
+    return idx / GetRowLength(gameboard);
 }
 
-int GetCol(BoardPtr gameboard, int i) {
-    return i % GetRowLength(gameboard);
+// converts an index into its corresponding row
+int GetCol(BoardPtr gameboard, int idx) {
+    return idx % GetRowLength(gameboard);
 }
 
 // Get value of candy at the provided index.
