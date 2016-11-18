@@ -9,9 +9,9 @@ TODO: Write class description
 // ------------------------------------------------------------
 static void d_button_callback(GtkWidget* widget, gpointer data) {
     char DIRECTION_CHARS[] = {'N', 'W', 'E', 'S'}; // remove this if it can be defined elsewhere
-    printf("%c\n", DIRECTION_CHARS[(int)data]);
+    //printf("%c\n", DIRECTION_CHARS[(int)data]);
     boolean swapResult = SwapCandy(gameboard, DIRECTION_CHARS[(int)data]);
-    printf("swapRes: %d", swapResult);
+    //printf("swapRes: %d", swapResult);
     refresh_window(app);
 }
 
@@ -33,8 +33,6 @@ void make_window(GtkApplication* app) {
 void fill_window(GtkApplication *app) {
     char remaining_moves[256];
     int candy, row, col;
-    //GtkWidget* imageArray[GetBoardSize(gameboard)]; // candy images
-    //GtkWidget* buttonArray[GetBoardSize(gameboard)]; // candy buttons
 
     sprintf(remaining_moves, "Moves left: %d", GetMoves(gameboard));
 
@@ -56,17 +54,12 @@ void fill_window(GtkApplication *app) {
     for(int i = 0; i < GetBoardSize(gameboard); i++) {
         row = GetRow(gameboard, i);
         col = GetCol(gameboard, i);
-        //printf("idx( %d ) -> row,col(%d, %d)\n", i, row, col);
-        //printf("");
 
         GetCandy(gameboard, i, &candy);
 
         // create button, image and place in grid
-        GtkWidget* currButton;// = buttonArray[i];
-        currButton = gtk_toggle_button_new();
-        GtkWidget* currImage;// = imageArray[i];
-        currImage = gtk_image_new_from_file(candy_image_filenames[candy]);
-        //currImage = gtk_image_new_from_file("bleh.png");
+        GtkWidget* currButton = gtk_toggle_button_new();
+        GtkWidget* currImage = gtk_image_new_from_file(candy_image_filenames[candy]);
         gtk_button_set_image((GtkButton*)currButton, currImage);
         gtk_grid_attach(GTK_GRID(candy_grid), currButton, col, row, 1, 1);
 
@@ -109,7 +102,7 @@ int main(int argc, char **argv) {
     status = g_application_run(G_APPLICATION(app), argc, argv);
 
     g_object_unref(app);
-    // DestroyBoard(gameboard);
+    DestroyBoard(gameboard);
 
     return status;
 }
