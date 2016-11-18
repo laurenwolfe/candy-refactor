@@ -1,7 +1,6 @@
 #ifndef _GAMEBOARD_H_
 #define _GAMEBOARD_H_
 
-#include <gtk/gtk.h>
 #include <jansson.h>
 #include <array2d.h>
 
