@@ -94,13 +94,13 @@ boolean SwapCandy(BoardPtr gameboard, char dir) {
 
     //Get relative index for element in swap direction
     if(dir == 'N') {
-        row2--;
-    } else if(dir == 'S') {
         row2++;
+    } else if(dir == 'S') {
+        row2--;
     } else if(dir == 'E') {
-        col2++;
-    } else if(dir == 'W') {
         col2--;
+    } else if(dir == 'W') {
+        col2++;
     } else {
         return false;
     }

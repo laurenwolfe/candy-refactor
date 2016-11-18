@@ -32,9 +32,7 @@ void make_window(GtkApplication* app) {
 
 void fill_window(GtkApplication *app) {
     char remaining_moves[256];
-    int candy, row, col;
-    //GtkWidget* imageArray[GetBoardSize(gameboard)]; // candy images
-    //GtkWidget* buttonArray[GetBoardSize(gameboard)]; // candy buttons
+    int candy, row, col, j;
 
     sprintf(remaining_moves, "Moves left: %d", GetMoves(gameboard));
 
@@ -53,25 +51,25 @@ void fill_window(GtkApplication *app) {
     gtk_box_pack_start(GTK_BOX(interface_container), move_counter, FALSE, FALSE, 20);
     gtk_box_pack_start(GTK_BOX(interface_container), dpad_grid, FALSE, FALSE, 0);
 
+    j = GetBoardSize(gameboard);
+
     for(int i = 0; i < GetBoardSize(gameboard); i++) {
         row = GetRow(gameboard, i);
         col = GetCol(gameboard, i);
-        //printf("idx( %d ) -> row,col(%d, %d)\n", i, row, col);
-        //printf("");
 
-        GetCandy(gameboard, i, &candy);
+        GetCandy(gameboard, j, &candy);
 
         // create button, image and place in grid
         GtkWidget* currButton;// = buttonArray[i];
         currButton = gtk_toggle_button_new();
         GtkWidget* currImage;// = imageArray[i];
         currImage = gtk_image_new_from_file(candy_image_filenames[candy]);
-        //currImage = gtk_image_new_from_file("bleh.png");
         gtk_button_set_image((GtkButton*)currButton, currImage);
         gtk_grid_attach(GTK_GRID(candy_grid), currButton, col, row, 1, 1);
 
         // add signal handler to button
-        g_signal_connect(currButton, "toggled", G_CALLBACK(c_button_callback), GINT_TO_POINTER(i));
+        g_signal_connect(currButton, "toggled", G_CALLBACK(c_button_callback), GINT_TO_POINTER(j));
+        j--;
     }
 
     // create directional buttons
@@ -109,7 +107,7 @@ int main(int argc, char **argv) {
     status = g_application_run(G_APPLICATION(app), argc, argv);
 
     g_object_unref(app);
-    // DestroyBoard(gameboard);
+    DestroyBoard(gameboard);
 
     return status;
 }
