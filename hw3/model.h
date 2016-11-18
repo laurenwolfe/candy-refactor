@@ -1,7 +1,9 @@
 #ifndef _GAMEBOARD_H_
 #define _GAMEBOARD_H_
 
-#include <array2d.h>
+#include <gtk/gtk.h>
+#include <jansson.h>
+#include "../hw2/array2d.h"
 
 #define MOVES 30
 #define NO_CANDY (-1)
@@ -32,6 +34,8 @@ void FreeFunction(Array_t pointer);
 int GetRowLength(BoardPtr gameboard);
 int GetColLength(BoardPtr gameboard);
 int GetBoardSize(BoardPtr gameboard);
+int GetRow(BoardPtr gameboard, int idx);
+int GetCol(BoardPtr gameboard, int idx);
 void GetCandy(BoardPtr gameboard, int idx, int *candy_ptr);
 
 #endif // _GAMEBOARD_H_

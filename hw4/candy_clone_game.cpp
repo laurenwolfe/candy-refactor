@@ -137,3 +137,7 @@ void settle() {
 void GravityAll() {
 
 }
+
+void GravitySub() {
+
+}
