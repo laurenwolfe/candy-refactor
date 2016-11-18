@@ -121,8 +121,9 @@ private bool CellIsHThreeTemplate(int idx) {
 }
 
 // assumes that idx and template are both valid
-void ExplodeCandy(int idx, string template) {
-  // removes colors from the grid starting at cell
+void ExplodeCandy(int idx) {
+  // clear the color at idx in the color board
+  // decrement the count at idx in the score_board if count >0
   // idx and following the specified template
 }
 
@@ -135,9 +136,33 @@ void settle() {
 }
 
 void GravityAll() {
-
+  // for each cell in gameboard:
+    // if(cell is empty)
+      // GravitySub(cell, 0);
 }
 
-void GravitySub() {
+// recursive function that fills in square with next non-empty square above
+candy GravitySub(int idx, int lvl) {
+  // if (idx is outside game board) {
+    // get next candy from this col in extended_board
+    // return candy from extended_board
+
+  // if (this idx has a candy in it){
+    // return_candy = getcandy(idx)
+    // clearCandy(idx)
+    // return return_candy;
+  
+  // if (this idx is empty)
+    // result_candy = GravitySub(cell above idx, lvl+1);
+    // if(lvl == 0) {
+      // we are back at the origional cell
+      // idx.setCandy(result_candy)
+      // return null; // (we are finished)
+    // else 
+      // continue to propagate candy down
+      // return result_candy
+  }
+
+
 
 }
