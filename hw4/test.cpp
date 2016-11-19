@@ -10,8 +10,8 @@ int main(int argc, char **argv) {
     cout << "Score: " << b.GetScore() << endl;
 
 
-    b.SetSelectedCandy(0);
-    if(b.SwapCandy('N')) {
+    b.SetSelectedCandy(7);
+    if(b.SwapCandy('E')) {
         cout << "Success!" << endl;
         cout << "Moves remaining: " << b.GetMovesRemaining() << endl;
         cout << "Score: " << b.GetScore() << endl;

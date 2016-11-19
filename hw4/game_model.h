@@ -48,7 +48,9 @@ class GameModel {
         bool HasVerticalMatch(const int &idx);
         bool HasHorizontalMatch(const int &idx);
         bool ScanSequence(const int size, vector<int> candy_seq);
-        void SetColor(const int &idx, const int &value);
+        void SetCandy(const int &idx, const int &color, const int &type);
+        void SetCandy(const int &dest_idx, const int &source_idx);
+        bool FreeCandy(const int &idx);
         bool FireBoardLoop();
         bool FindAndFireVerticalMatch(const int &num);
         bool FindAndFireHorizontalMatch(const int &num);
@@ -68,6 +70,7 @@ class GameModel {
         int score_ = 0;
         const int NO_CANDY = -1;
         const int MIN_MATCH_LENGTH = 3;
+        const int DEFAULT_CANDY_TYPE = 0;
 };
 
 #endif // _GAME_MODEL_H_
