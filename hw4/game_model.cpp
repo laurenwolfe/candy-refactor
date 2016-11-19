@@ -2,6 +2,7 @@
 #include <vector>
 #include <array>
 #include <algorithm>
+#include <exception>
 #include "game_model.h"
 
 using namespace std;
@@ -112,10 +113,19 @@ bool GameModel::SwapCandy(const char &dir) {
     idx2 = ConvertToIdx(row2, col2);
 
     if(TrySwap(sel_candy_idx_, idx2)) {
+        //cout << "Preswap: " << endl;
+        //PrintBoard();
+
         moves_made_++;
         SetSelectedCandy(NO_CANDY);
-        FireBoardLoop();
-        return true;
+        if(FireBoardLoop()) {
+
+            //cout << "Postswap: " << endl;
+            //PrintBoard();
+            return true;
+        } else {
+            //assert?
+        }
     }
 
     return false;
@@ -139,14 +149,7 @@ void GameModel::SerializeGame(const string &filepath) {
 bool GameModel::TrySwap(const int &idx1, const int &idx2) {
     bool matched;
 
-    cout << "Preswap: " << endl;
-    PrintBoard();
-
     Swap(game_board_, idx1, idx2);
-
-    cout << "Postswap: " << endl;
-    PrintBoard();
-
 
     matched = HasVerticalMatch(idx1) || HasVerticalMatch(idx2) ||
          HasHorizontalMatch(idx1) || HasHorizontalMatch(idx2);
@@ -167,18 +170,12 @@ bool GameModel::HasVerticalMatch(const int &idx) {
     if(GetColLength() >= MIN_MATCH_LENGTH) {
         //for every valid candy index within interval,
         //add candy color to vector
-        cout << "Vertical for idx " << idx << ": ";
         for (int i = idx - interval; i <= (idx + interval); i = i + GetRowLength()) {
             if (i > 0 && i < GetBoardSize()) {
                 candy_seq.push_back(GetCandyColor(i));
                 size++;
             }
         }
-
-        for(int i = 0; i < size; i++) {
-            cout << candy_seq[i] << " ";
-        }
-        cout << endl;
 
         return ScanSequence(size, candy_seq);
     }
@@ -201,7 +198,6 @@ bool GameModel::HasHorizontalMatch(const int &idx) {
 
         //for every valid candy index above and below given index,
         //add candy color to vector
-        cout << "Horizontal for idx " << idx << ": ";
         for (int i = idx - (MIN_MATCH_LENGTH - 1);
                  i < idx + (MIN_MATCH_LENGTH - 1); i++) {
             if (i > 0 && i < max_idx) {
@@ -209,11 +205,6 @@ bool GameModel::HasHorizontalMatch(const int &idx) {
                 size++;
             }
         }
-
-        for(int i = 0; i < size; i++) {
-            cout << candy_seq[i] << " ";
-        }
-        cout << endl;
 
         return ScanSequence(size, candy_seq);
     }
@@ -245,32 +236,128 @@ bool GameModel::ScanSequence(const int size, vector<int> candy_seq) {
     return false;
 }
 
-void GameModel::FireBoardLoop() {
-    
+void GameModel::SetColor(const int &idx, const int &value) {
+    // TODO: Free memory
+    CandyPtr candy = (CandyPtr)malloc(sizeof(Candy));
+    candy->color = -1;
+    candy->type = 0;
+
+    game_board_->data[idx] = (Json_ptr)(candy);
 }
 
-void GameModel::FindAndFireVerticalMatch(const int &num) {
+bool GameModel::FireBoardLoop() {
+    bool fired = FindAndFireVerticalMatch(4);
+    fired |= FindAndFireHorizontalMatch(4);
+    fired |= FindAndFireVerticalMatch(3);
+    fired |= FindAndFireHorizontalMatch(3);
+
+    return fired;
+}
+
+bool GameModel::FindAndFireVerticalMatch(const int &num) {
+    bool fired = false;
+    int idx;
+    int seq_count = 0;
+    int color = -2;
 
     for(int col = 0; col < GetRowLength(); col++) {
-        for(int row = 0; row <= GetColLength() - num; row++) {
-
+        for(int row = 0; row < GetColLength(); row++) {
+            idx = ConvertToIdx(row, col);
+            if(seq_count == num) {
+                for(int i = 0; i < num; i++) {
+                    SetColor(idx, -1);
+                    AdjustScore(idx);
+                    idx -= GetRowLength();
+                }
+                seq_count = 0;
+                color = -2;
+                fired = true;
+            } else if(GetCandyColor(idx) == color) {
+                seq_count++;
+            } else if(GetCandyColor(idx) == -1) {
+                color = -2;
+                seq_count = 0;
+            } else {
+                color = GetCandyColor(idx);
+                seq_count = 1;
+            }
         }
+        if(seq_count == num) {
+            for (int i = 0; i < num; i++) {
+                SetColor(idx, -1);
+                AdjustScore(idx);
+                idx -= GetRowLength();
+            }
+        }
+        seq_count = 0;
+        color = -2;
+        fired = true;
+    }
+
+    return fired;
+}
+
+bool GameModel::FindAndFireHorizontalMatch(const int &num) {
+    int idx;
+    int seq_count = 0;
+    int color = -2;
+    bool fired = false;
+
+    for(int row = 0; row < GetColLength(); row++) {
+        for(int col = 0; col < GetRowLength(); col++) {
+            idx = ConvertToIdx(row, col);
+            if(seq_count == num) {
+                for(int i = 0; i < num; i++) {
+                    SetColor(idx, -1);
+                    AdjustScore(idx);
+                    idx--;
+                }
+                seq_count = 0;
+                color = -2;
+                fired = true;
+            } else if(GetCandyColor(idx) == color) {
+                seq_count++;
+            } else if(GetCandyColor(idx) == -1) {
+                color = -2;
+                seq_count = 0;
+            } else {
+                color = GetCandyColor(idx);
+                seq_count = 1;
+            }
+        }
+
+        if(seq_count == num) {
+            for (int i = 0; i < num; i++) {
+                SetColor(idx, -1);
+                AdjustScore(idx);
+                idx--;
+            }
+        }
+            seq_count = 0;
+            color = -2;
+            fired = true;
+    }
+
+    return fired;
+}
+
+void GameModel::AdjustScore(const int &idx) {
+    long firings_left = (long)(fired_state_->data[idx]);
+
+    if(firings_left > 0) {
+        firings_left--;
+        fired_state_->data[idx] = (Array_t)firings_left;
+        score_++;
+        cout << "firings left: " << long(fired_state_->data[idx]) << endl;
+    } else {
+        cout << "no firings left!" <<endl;
     }
 }
 
-void GameModel::FindAndFireHorizontalMatch(const int &num) {
-    //TODO
-
-}
-
-void GameModel::AdjustScore() {
-    //TODO
-
-}
-
 void GameModel::ApplyGravity() {
-    //TODO
+    for(int idx = 0; idx < GetBoardSize(); idx++) {
 
+    }
 }
 
 void GameModel::FillFromExtensionBoard() {
@@ -288,6 +375,7 @@ void GameModel::PrintBoard() {
         }
         cout << endl;
     }
+    cout << "============" << endl;
 }
 
 //Deserialize data in json file provided as a command line argument
