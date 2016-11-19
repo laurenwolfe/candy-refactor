@@ -52,6 +52,7 @@ class GameModel {
         void SetCandy(const int &dest_idx, const int &source_idx);
         bool FreeCandy(const int &idx);
         bool FireBoardLoop();
+        bool FindAndFireTemplates(const int &num, const bool &isVertical);
         bool FindAndFireVerticalMatch(const int &num);
         bool FindAndFireHorizontalMatch(const int &num);
         void AdjustScore(const int &idx); //if fires remaining, inc score and dec fires
@@ -71,6 +72,7 @@ class GameModel {
         const int NO_CANDY = -1;
         const int MIN_MATCH_LENGTH = 3;
         const int DEFAULT_CANDY_TYPE = 0;
+        const int MAX_SETTLE = 1000;
 };
 
 #endif // _GAME_MODEL_H_

@@ -85,7 +85,9 @@ void GameModel::SetSelectedCandy(int idx) {
 }
 
 bool GameModel::SwapCandy(const char &dir) {
-    int row2, col2, idx2;
+    int row2, col2, idx2, settle_ctr;
+
+    settle_ctr = 0;
 
     if(GetSelectedCandyPtr() == nullptr) {
         return false;
@@ -112,24 +114,38 @@ bool GameModel::SwapCandy(const char &dir) {
 
     idx2 = ConvertToIdx(row2, col2);
 
-    //cout << "Preswap: " << endl;
-    //PrintBoard();
+    cout << "Preswap: " << endl;
+    PrintBoard();
 
     if(TrySwap(sel_candy_idx_, idx2)) {
+        while(settle_ctr < MAX_SETTLE && FireBoardLoop()) {
+            moves_made_++;
 
-        moves_made_++;
-        SetSelectedCandy(NO_CANDY);
-        while(FireBoardLoop()) {
-            //cout << "Postswap: " << endl;
-            //PrintBoard();
+            cout << "Post Fire: " << endl;
+            PrintBoard();
 
             ApplyGravity();
-            //cout << "Post Gravity: " << endl;
-            //PrintBoard();
+            cout << "Post Gravity: " << endl;
+            PrintBoard();
 
             FillFromExtensionBoard();
-            return true;
+
+            cout << "Post Fill: " << endl;
+            PrintBoard();
+
+            /*
+            cout << "Extension offsets: ";
+            for(auto it = extension_offset_.begin();
+                it < extension_offset_.end(); it++) {
+                cout << *it << " ";
+            }
+            cout << endl;
+            */
+            settle_ctr++;
         }
+
+        SetSelectedCandy(NO_CANDY);
+        return true;
     }
 
     return false;
@@ -266,20 +282,49 @@ bool GameModel::FireBoardLoop() {
     fired |= FindAndFireHorizontalMatch(4);
     fired |= FindAndFireVerticalMatch(3);
     fired |= FindAndFireHorizontalMatch(3);
-
+    if(fired) {
+        cout << "Fired successfully!" << endl;
+    } else {
+        cout << "Didn't fire." << endl;
+    }
     return fired;
+}
+
+bool GameModel::FindAndFireTemplates(const int &num, const bool &isVertical) {
+    bool fired = false;
+    int seq_count, color;
+
+    for(int idx = 0; idx < GetBoardSize(); idx++) {
+        if(isVertical) {
+            //traverse each column, looking for num sized sequence
+            //if
+        } else {
+
+        }
+    }
 }
 
 bool GameModel::FindAndFireVerticalMatch(const int &num) {
     bool fired = false;
-    int idx;
-    int seq_count = 0;
-    int color = -2;
+    int idx = 0;
+    int idx, seq_count, color;
 
     for(int col = 0; col < GetRowLength(); col++) {
-        for(int row = 0; row < GetColLength(); row++) {
-            if(seq_count == num) {
-                for(int i = 0; i < num; i++) {
+        if (seq_count == num) {
+            for (int i = 0; i < num; i++) {
+                SetCandy(idx, -1, 0);
+                AdjustScore(idx);
+                idx -= GetRowLength();
+            }
+            fired = true;
+        }
+        seq_count = 0;
+        color = -2;
+        for (int row = 0; row < GetColLength(); row++) {
+            idx = ConvertToIdx(row, col);
+
+            if (seq_count == num) {
+                for (int i = 0; i < num; i++) {
                     SetCandy(idx, -1, 0);
                     AdjustScore(idx);
                     idx -= GetRowLength();
@@ -289,11 +334,9 @@ bool GameModel::FindAndFireVerticalMatch(const int &num) {
                 fired = true;
             }
 
-            idx = ConvertToIdx(row, col);
-
-            if(GetCandyColor(idx) == color) {
+            if (GetCandyColor(idx) == color) {
                 seq_count++;
-            } else if(GetCandyColor(idx) == -1) {
+            } else if (GetCandyColor(idx) == -1) {
                 color = -2;
                 seq_count = 0;
             } else {
@@ -301,15 +344,14 @@ bool GameModel::FindAndFireVerticalMatch(const int &num) {
                 seq_count = 1;
             }
         }
-        if(seq_count == num) {
-            for (int i = 0; i < num; i++) {
-                SetCandy(idx, -1, 0);
-                AdjustScore(idx);
-                idx -= GetRowLength();
-            }
+    }
+
+    if (seq_count == num) {
+        for (int i = 0; i < num; i++) {
+            SetCandy(idx, -1, 0);
+            AdjustScore(idx);
+            idx -= GetRowLength();
         }
-        seq_count = 0;
-        color = -2;
         fired = true;
     }
 
@@ -317,13 +359,15 @@ bool GameModel::FindAndFireVerticalMatch(const int &num) {
 }
 
 bool GameModel::FindAndFireHorizontalMatch(const int &num) {
-    int idx;
-    int seq_count = 0;
-    int color = -2;
+    int idx, seq_count, color;
     bool fired = false;
 
     for(int row = 0; row < GetColLength(); row++) {
+        seq_count = 0;
+        color = -2;
         for(int col = 0; col < GetRowLength(); col++) {
+            idx = ConvertToIdx(row, col);
+
             if(seq_count == num) {
                 for(int i = 0; i < num; i++) {
                     SetCandy(idx, -1, 0);
@@ -334,8 +378,6 @@ bool GameModel::FindAndFireHorizontalMatch(const int &num) {
                 color = -2;
                 fired = true;
             }
-
-            idx = ConvertToIdx(row, col);
 
             if(GetCandyColor(idx) == color) {
                 seq_count++;
@@ -354,10 +396,16 @@ bool GameModel::FindAndFireHorizontalMatch(const int &num) {
                 AdjustScore(idx);
                 idx--;
             }
-        }
-            seq_count = 0;
-            color = -2;
             fired = true;
+        }
+    }
+    if (seq_count == num) {
+        for (int i = 0; i < num; i++) {
+            SetCandy(idx, -1, 0);
+            AdjustScore(idx);
+            idx -= GetRowLength();
+        }
+        fired = true;
     }
 
     return fired;
@@ -370,25 +418,38 @@ void GameModel::AdjustScore(const int &idx) {
         firings_left--;
         fired_state_->data[idx] = (Array_t)firings_left;
         score_++;
-        cout << "firings left: " << long(fired_state_->data[idx]) << endl;
-    } else {
-        cout << "no firings left!" <<endl;
     }
 }
 
 void GameModel::ApplyGravity() {
+    int src_idx;
     for(int dest_idx = 0; dest_idx < GetBoardSize() - GetRowLength(); dest_idx++) {
-        if(GetCandyColor(dest_idx) == NO_CANDY) {
-            int src_idx = dest_idx + GetRowLength();
-            SetCandy(dest_idx, src_idx);
-            SetCandy(src_idx, NO_CANDY, DEFAULT_CANDY_TYPE);
+        src_idx = dest_idx + GetRowLength();
+        while (GetCandyColor(dest_idx) == NO_CANDY && src_idx < GetBoardSize()) {
+            if(GetCandyColor(src_idx) != NO_CANDY) {
+                SetCandy(dest_idx, src_idx);
+                SetCandy(src_idx, NO_CANDY, DEFAULT_CANDY_TYPE);
+            } else {
+                src_idx += GetRowLength();
+            }
         }
     }
 }
 
 void GameModel::FillFromExtensionBoard() {
+    cout << "Attempting to Fill" << endl;
+    for(int idx = 0; idx < GetBoardSize(); idx++) {
+        if(GetCandyColor(idx) == NO_CANDY) {
+            int extension_col = ConvertToCol(idx);
+            int extension_row =
+                extension_offset_.at(extension_col) % extension_board_->num_rows;
+            int extension_idx = ConvertToIdx(extension_row, extension_col);
+            int new_color = (long)extension_board_->data[extension_idx];
 
-
+            SetCandy(idx, new_color, DEFAULT_CANDY_TYPE);
+            extension_offset_.at(extension_col) += 1;
+        }
+    }
 }
 
 void GameModel::PrintBoard() {
