@@ -6,7 +6,7 @@ using namespace std;
 int main(int argc, char **argv) {
     GameModel b;
 
-    cout << b.GetRowLength() << endl;
+    cout << b.GetCandyColor(0) << endl;
 
     return 0;
 }

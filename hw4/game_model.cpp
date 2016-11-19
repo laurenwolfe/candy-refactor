@@ -31,6 +31,93 @@ GameModel::GameModel() {
     num_colors_ = 6;
 }
 
+GameModel::GameModel(string filepath) {
+    DeserializeGame(filepath);
+}
+
+int GameModel::GetCandyColor(const int &idx) const {
+    CandyPtr candy;
+    candy = (CandyPtr) game_board_->data[idx];
+    return candy->color;
+}
+
+CandyPtr GameModel::GetSelectedCandy() const {
+    return sel_candy_;
+}
+
+int GameModel::GetRowLength() const {
+    return game_board_->num_rows;
+}
+
+int GameModel::GetColLength() const {
+    return game_board_->num_cols;
+}
+
+int GameModel::GetBoardSize() const {
+    return game_board_->num_rows * game_board_->num_cols;
+}
+
+bool GameModel::SwapCandy(const char &dir) {
+
+    //TODO
+    return false;
+}
+
+bool GameModel::IsGameOver() {
+    //TODO
+    return false;
+}
+
+void GameModel::DeserializeGame(const string &filepath) {
+    //TODO
+
+}
+
+void GameModel::SerializeGame(const string &filepath) {
+    //TODO
+
+}
+
+bool GameModel::IsValidSwap(const int &idx1, const int &idx2) {
+    //TODO
+    return false;
+}
+
+void GameModel::FireBoardLoop() {
+    //TODO
+
+}
+
+void GameModel::FindMatches() {
+    //TODO
+
+}
+
+void GameModel::FindVerticalMatches(const int &num) {
+    //TODO
+
+}
+
+void GameModel::FindHorizontalMatches(const int &num) {
+    //TODO
+
+}
+
+void GameModel::AdjustScore() {
+    //TODO
+
+}
+
+void GameModel::ApplyGravity() {
+    //TODO
+
+}
+
+void GameModel::FillFromExtensionBoard() {
+    //TODO
+
+}
+
 //Deserialize data in json file provided as a command line argument
 void DeserializeFunction(Array2D array, Json_ptr data) {
     Json_ptr value;
@@ -53,81 +140,11 @@ void DeserializeFunction2(Array2D array, Json_ptr data) {
 
     //Unpack array of integers from JSON object into the Array2D
     json_array_foreach(data, index, value) {
-        struct Candy *candy = (Candy *)malloc(sizeof(candy));
+        CandyPtr candy = (CandyPtr)malloc(sizeof(Candy));
         json_unpack(value, "i", &el_value);
         candy->color = el_value;
         candy->type = 0;
         array->data[index] = (Json_ptr)(candy);
     }
     json_array_clear(data);
-}
-
-
-GameModel::GameModel(string filepath) {
-    DeserializeGame(filepath);
-}
-
-Candy GameModel::GetSelectedCandy() const {
-    Candy c;
-    return c;
-}
-
-int GameModel::GetRowLength() const {
-    return game_board_->num_rows;
-}
-
-int GameModel::GetColLength() const {
-    return game_board_->num_cols;
-}
-
-int GameModel::GetBoardSize() const {
-    return game_board_->num_rows * game_board_->num_cols;
-}
-
-bool GameModel::SwapCandy(const int &idx1, const int &idx2) {
-    return false;
-}
-
-bool GameModel::IsGameOver() {
-    return false;
-}
-
-void GameModel::DeserializeGame(const string &filepath) {
-
-}
-
-void GameModel::SerializeGame(const string &filepath) {
-
-}
-
-bool GameModel::IsValidSwap(const int &idx1, const int &idx2) {
-    return false;
-}
-
-void GameModel::FireBoardLoop() {
-
-}
-
-void GameModel::FindMatches() {
-
-}
-
-void GameModel::FindVerticalMatches(const int &num) {
-
-}
-
-void GameModel::FindHorizontalMatches(const int &num) {
-
-}
-
-void GameModel::AdjustScore() {
-
-}
-
-void GameModel::ApplyGravity() {
-
-}
-
-void GameModel::FillFromExtensionBoard() {
-
 }

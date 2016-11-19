@@ -11,10 +11,10 @@ extern "C" {
 
 using namespace std;
 
-struct Candy {
+typedef struct candy {
     int color;
     int type = 0;
-};
+} Candy, *CandyPtr;
 
 class GameModel {
     public:
@@ -25,11 +25,12 @@ class GameModel {
         int GetScore() const { return score_; };
         int GetGameID() const { return game_id_; };
 
-        Candy GetSelectedCandy() const;
+        CandyPtr GetSelectedCandy() const;
+        int GetCandyColor(const int &idx) const;
         int GetRowLength() const;
         int GetColLength() const;
         int GetBoardSize() const;
-        bool SwapCandy(const int &idx1, const int &idx2);
+        bool SwapCandy(const char &dir);
         bool IsGameOver();
 
     private:
@@ -50,7 +51,7 @@ class GameModel {
         Array2D game_board_; //current visible board
         Array2D fired_state_; //how many times each cell needs to fire before win
         vector<int> extension_offset_; //row number for next drop position of extension board
-        Candy sel_candy_; //button-selected candy -- TODO: need to delete after swap
+        CandyPtr sel_candy_ = nullptr; //button-selected candy -- TODO: need to delete after swap
         int game_id_;
         int total_moves_;
         int moves_left_;
