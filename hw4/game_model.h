@@ -7,7 +7,6 @@
 extern "C" {
     #include <array2d.h>
     #include <jansson.h>
-    #include "../hw3/model.h"
 }
 
 using namespace std;
@@ -17,10 +16,10 @@ struct Candy {
     int type = 0;
 };
 
-class Board {
+class GameModel {
     public:
-        Board();
-        Board(string filepath);
+        GameModel();
+        GameModel(string filepath);
 
         int GetMovesRemaining() const { return moves_left_; };
         int GetScore() const { return score_; };
@@ -34,8 +33,8 @@ class Board {
         bool IsGameOver();
 
     private:
+
         void DeserializeGame(const string &filepath);
-        //void DeserializeFunction(Array2D array, Json_ptr data);
         void SerializeGame(const string &filepath);
 
         bool IsValidSwap(const int &idx1, const int &idx2);

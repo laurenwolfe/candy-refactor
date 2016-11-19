@@ -1,7 +1,12 @@
-#include "model.h"
+#include <iostream>
+#include "game_model.h"
 
-int main(int argc, int **argv) {
-    Board b = new Board();
+using namespace std;
+
+int main(int argc, char **argv) {
+    GameModel b;
+
+    cout << b.GetRowLength() << endl;
 
     return 0;
 }
