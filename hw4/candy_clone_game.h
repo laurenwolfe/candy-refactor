@@ -3,8 +3,10 @@
 
 extern "C" {
   #include "../hw2/array2d.h"
+  #include <jansson.h>
 }
 
+#include <string>
 #include <vector>
 
 
