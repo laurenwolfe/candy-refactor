@@ -112,23 +112,23 @@ bool GameModel::SwapCandy(const char &dir) {
 
     idx2 = ConvertToIdx(row2, col2);
 
-    cout << "Preswap: " << endl;
-    PrintBoard();
+    //cout << "Preswap: " << endl;
+    //PrintBoard();
 
     if(TrySwap(sel_candy_idx_, idx2)) {
 
         moves_made_++;
         SetSelectedCandy(NO_CANDY);
-        if(FireBoardLoop()) {
-            cout << "Postswap: " << endl;
-            PrintBoard();
+        while(FireBoardLoop()) {
+            //cout << "Postswap: " << endl;
+            //PrintBoard();
 
             ApplyGravity();
-            cout << "Post Gravity: " << endl;
-            PrintBoard();
+            //cout << "Post Gravity: " << endl;
+            //PrintBoard();
+
+            FillFromExtensionBoard();
             return true;
-        } else {
-            //assert?
         }
     }
 
@@ -387,7 +387,7 @@ void GameModel::ApplyGravity() {
 }
 
 void GameModel::FillFromExtensionBoard() {
-    //TODO
+
 
 }
 
