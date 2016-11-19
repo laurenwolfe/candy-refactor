@@ -34,6 +34,7 @@ class GameModel {
         int ConvertToCol(const int &idx) const;
         int ConvertToIdx(const int &row, const int &col) const;
         int GetBoardSize() const;
+        void PrintBoard();
 
         void SetSelectedCandy(int idx);
         bool SwapCandy(const char &dir);
@@ -46,10 +47,10 @@ class GameModel {
         bool TrySwap(const int &idx1, const int &idx2);
         bool HasVerticalMatch(const int &idx);
         bool HasHorizontalMatch(const int &idx);
+        bool ScanSequence(const int size, vector<int> candy_seq);
         void FireBoardLoop();
-        void FindMatches();
-        void FindVerticalMatches(const int &num);
-        void FindHorizontalMatches(const int &num);
+        void FindAndFireVerticalMatch(const int &num);
+        void FindAndFireHorizontalMatch(const int &num);
         void AdjustScore(); //if fires remaining, inc score and dec fires
         void ApplyGravity();
         void FillFromExtensionBoard();

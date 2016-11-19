@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <array>
+#include <algorithm>
 #include "game_model.h"
 
 using namespace std;
@@ -83,14 +84,14 @@ void GameModel::SetSelectedCandy(int idx) {
 }
 
 bool GameModel::SwapCandy(const char &dir) {
-    int row1, row2, col1, col2, idx1, idx2;
+    int row2, col2, idx2;
 
     if(GetSelectedCandyPtr() == nullptr) {
         return false;
     }
 
-    row1 = row2 = ConvertToRow(sel_candy_idx_);
-    col1 = col2 = ConvertToCol(sel_candy_idx_);
+    row2 = ConvertToRow(sel_candy_idx_);
+    col2 = ConvertToCol(sel_candy_idx_);
 
     if(dir == 'N') {
         row2++;
@@ -108,10 +109,9 @@ bool GameModel::SwapCandy(const char &dir) {
         return false;
     }
 
-    idx1 = sel_candy_idx_;
     idx2 = ConvertToIdx(row2, col2);
 
-    if(TrySwap(idx1, idx2)) {
+    if(TrySwap(sel_candy_idx_, idx2)) {
         moves_made_++;
         SetSelectedCandy(NO_CANDY);
         FireBoardLoop();
@@ -138,7 +138,16 @@ void GameModel::SerializeGame(const string &filepath) {
 
 bool GameModel::TrySwap(const int &idx1, const int &idx2) {
     bool matched;
+
+    cout << "Preswap: " << endl;
+    PrintBoard();
+
     Swap(game_board_, idx1, idx2);
+
+    cout << "Postswap: " << endl;
+    PrintBoard();
+
+
     matched = HasVerticalMatch(idx1) || HasVerticalMatch(idx2) ||
          HasHorizontalMatch(idx1) || HasHorizontalMatch(idx2);
     if(!matched) {
@@ -150,41 +159,28 @@ bool GameModel::TrySwap(const int &idx1, const int &idx2) {
 // These could probably be optimized to work with any minimum match length,
 // but works for now
 bool GameModel::HasVerticalMatch(const int &idx) {
-    int size, arr_idx, seq_count, color;
-    size = GetColLength();
-    arr_idx = 0, seq_count = 0, color = -2;
-    int candy_seq[size];
+    int size = 0;
+    vector<int> candy_seq;
+    //min/max difference for index
+    const int interval = GetRowLength() * (MIN_MATCH_LENGTH - 1);
 
-    if(GetRowLength() >= MIN_MATCH_LENGTH) {
-        //for every valid candy index above and below given index,
+    if(GetColLength() >= MIN_MATCH_LENGTH) {
+        //for every valid candy index within interval,
         //add candy color to vector
-        for(int i = 0; i < idx + (GetRowLength() * MIN_MATCH_LENGTH);
-            i + GetRowLength()) {
-            if(i > 0 && i < GetBoardSize()) {
-                candy_seq[arr_idx] = GetCandyColor(i);
-                arr_idx++;
+        cout << "Vertical for idx " << idx << ": ";
+        for (int i = idx - interval; i <= (idx + interval); i = i + GetRowLength()) {
+            if (i > 0 && i < GetBoardSize()) {
+                candy_seq.push_back(GetCandyColor(i));
+                size++;
             }
         }
 
-        for(int i = 0; i < arr_idx; i++) {
-            //Found sequence!
-            if(seq_count == MIN_MATCH_LENGTH) {
-                return true;
-            }
+        for(int i = 0; i < size; i++) {
+            cout << candy_seq[i] << " ";
+        }
+        cout << endl;
 
-            if(candy_seq[i] == color) {
-                //matches sequence
-                seq_count++;
-            } else {
-                //discontinuous
-                color = candy_seq[i];
-                seq_count = 1;
-            }
-        }
-        //check for last element satisfy minimum match length
-        if(seq_count == MIN_MATCH_LENGTH) {
-            return true;
-        }
+        return ScanSequence(size, candy_seq);
     }
     return false;
 }
@@ -192,48 +188,77 @@ bool GameModel::HasVerticalMatch(const int &idx) {
 // These could probably be optimized to work with any minimum match length,
 // but works for now
 bool GameModel::HasHorizontalMatch(const int &idx) {
-    int col = ConvertToCol(idx);
+    int size, max_row_idx, max_match_idx, max_idx;
+    size = 0;
+    vector<int> candy_seq;
 
-    if(GetColLength() >= 3) {
-        if(col >= 2 &&
-            (GetCandyColor(idx - 2)
-            == GetCandyColor(idx - 1)
-            == GetCandyColor(idx))) {
-            // 2 left + idx + 0 right
-            return true;
-        } else if(col >= 1 && col + 1 < GetColLength() &&
-            (GetCandyColor(idx - 1)
-            == GetCandyColor(idx)
-            == GetCandyColor(idx + 1))) {
-            // 1 left + idx + 1 right
-            return true;
-        } else if(col + 2 < GetColLength() &&
-            (GetCandyColor(idx)
-            == GetCandyColor(idx + 1)
-            == GetCandyColor(idx + 2))) {
-            // 0 left + idx + 2 right
+    if(GetRowLength() >= MIN_MATCH_LENGTH) {
+        // Get maximum index (+1) possible for matching
+        // by taking minimum of max row index and max match index
+        max_row_idx = idx + GetRowLength() - idx % GetRowLength();
+        max_match_idx = idx + MIN_MATCH_LENGTH;
+        max_idx = min(max_match_idx, max_row_idx);
+
+        //for every valid candy index above and below given index,
+        //add candy color to vector
+        cout << "Horizontal for idx " << idx << ": ";
+        for (int i = idx - (MIN_MATCH_LENGTH - 1);
+                 i < idx + (MIN_MATCH_LENGTH - 1); i++) {
+            if (i > 0 && i < max_idx) {
+                candy_seq.push_back(GetCandyColor(i));
+                size++;
+            }
+        }
+
+        for(int i = 0; i < size; i++) {
+            cout << candy_seq[i] << " ";
+        }
+        cout << endl;
+
+        return ScanSequence(size, candy_seq);
+    }
+    return false;
+}
+
+bool GameModel::ScanSequence(const int size, vector<int> candy_seq) {
+    int seq_count = 0;
+    int color = -2;
+
+    for(int i = 0; i < size; i++) {
+        //Found sequence!
+        if(seq_count == MIN_MATCH_LENGTH) {
             return true;
         }
+
+        //If current candy continues sequence, increment, otherwise reset
+        if(candy_seq[i] == color) {
+            seq_count++;
+        } else {
+            color = candy_seq[i];
+            seq_count = 1;
+        }
+    }
+    //check for last element satisfy minimum match length
+    if(seq_count == MIN_MATCH_LENGTH) {
+        return true;
     }
     return false;
 }
 
 void GameModel::FireBoardLoop() {
-    //TODO
-
+    
 }
 
-void GameModel::FindMatches() {
-    //TODO
+void GameModel::FindAndFireVerticalMatch(const int &num) {
 
+    for(int col = 0; col < GetRowLength(); col++) {
+        for(int row = 0; row <= GetColLength() - num; row++) {
+
+        }
+    }
 }
 
-void GameModel::FindVerticalMatches(const int &num) {
-    //TODO
-
-}
-
-void GameModel::FindHorizontalMatches(const int &num) {
+void GameModel::FindAndFireHorizontalMatch(const int &num) {
     //TODO
 
 }
@@ -251,6 +276,18 @@ void GameModel::ApplyGravity() {
 void GameModel::FillFromExtensionBoard() {
     //TODO
 
+}
+
+void GameModel::PrintBoard() {
+    int idx = GetBoardSize() - 1;
+    cout << "Current board state:" << endl;
+    for(int i = GetRowLength(); i > 0; i--) {
+        for(int j = GetColLength(); j > 0; j--) {
+            cout << GetCandyColor(idx) << " ";
+            idx--;
+        }
+        cout << endl;
+    }
 }
 
 //Deserialize data in json file provided as a command line argument
@@ -283,3 +320,4 @@ void DeserializeFunction2(Array2D array, Json_ptr data) {
     }
     json_array_clear(data);
 }
+
