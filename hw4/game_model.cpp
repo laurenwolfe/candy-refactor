@@ -10,6 +10,7 @@ using namespace std;
 extern "C" void DeserializeFunction(Array2D, Json_ptr);
 extern "C" void DeserializeFunction2(Array2D, Json_ptr);
 
+// Empty Constructor is for testing purposes
 GameModel::GameModel() {
     char *file1 = (char *)"test1.json";
     char *file2 = (char *)"test2.json";
@@ -38,14 +39,17 @@ GameModel::GameModel() {
     max_score_ = GetMaxScore();
 }
 
+// Constructs a GameModel instance by deserializing game data file
 GameModel::GameModel(string filepath) {
     DeserializeGame(filepath);
 }
 
+// Returns number of moves remaining
 int GameModel::GetMovesRemaining() const {
     return total_moves_ - moves_made_;
 }
 
+// Returns max possible score (total number of possible firings for board)
 int GameModel::GetMaxScore() const {
     int max_score = 0;
 
@@ -56,50 +60,62 @@ int GameModel::GetMaxScore() const {
     return max_score;
 }
 
+// Returns the index of the candy currently selected on the gameboard
 int GameModel::GetSelectedCandyIdx() const {
     return sel_candy_idx_;
 }
 
-CandyPtr GameModel::GetSelectedCandyPtr() const {
-    return (CandyPtr) game_board_->data[sel_candy_idx_];
-}
-
+// Returns int representing candy's color
 int GameModel::GetCandyColor(const int &idx) const {
     CandyPtr candy;
     candy = (CandyPtr) game_board_->data[idx];
     return candy->color;
 }
 
+// Returns the total number of board squares
 int GameModel::GetBoardSize() const {
     return game_board_->num_rows * game_board_->num_cols;
 }
 
+// Returns length of board row (horizontal)
 int GameModel::GetRowLength() const {
     return game_board_->num_rows;
 }
 
+// Returns length of board column (vertical)
 int GameModel::GetColLength() const {
     return game_board_->num_cols;
 }
 
+// Given an index, convert to row position
 int GameModel::ConvertToRow(const int &idx) const {
     return idx / GetRowLength();
 }
 
+// Given an index, convert to column position
 int GameModel::ConvertToCol(const int &idx) const {
     return idx % GetRowLength();
 }
 
+// Given a row and column, convert to array index
 int GameModel::ConvertToIdx(const int &row, const int &col) const {
     return row * GetColLength() + col;
 }
 
+// Prints a copy of the current board's candy color values
+// in a grid alignment. Blank spots indicate fired squares
+// that haven't yet been filled.
 void GameModel::PrintBoard() {
     int idx = GetBoardSize() - 1;
     cout << "Current board state:" << endl;
     for(int i = GetRowLength(); i > 0; i--) {
         for(int j = GetColLength(); j > 0; j--) {
-            cout << GetCandyColor(idx) << " ";
+            int color = GetCandyColor(idx);
+            if(color == -1) {
+                cout << "  ";
+            } else {
+                cout << color << " ";
+            }
             idx--;
         }
         cout << endl;
@@ -107,6 +123,8 @@ void GameModel::PrintBoard() {
     cout << "============" << endl;
 }
 
+// Returns true if all squares have been fully fired or
+// if no moves remain, false otherwise
 bool GameModel::IsGameOver() {
     if(score_ == max_score_) {
         return true;
@@ -117,6 +135,8 @@ bool GameModel::IsGameOver() {
     }
 }
 
+// Set index of candy selected on gameboard
+// Resets to NO_CANDY after a swap is executed
 void GameModel::SetSelectedCandy(int idx) {
     sel_candy_idx_ = idx;
 }
@@ -124,15 +144,15 @@ void GameModel::SetSelectedCandy(int idx) {
 bool GameModel::SwapCandy(const char &dir) {
     int row2, col2, idx2, settle_ctr;
 
-    settle_ctr = 0;
-
-    if(GetSelectedCandyPtr() == nullptr || IsGameOver()) {
+    if(GetSelectedCandyIdx() == NO_CANDY || IsGameOver()) {
         return false;
     }
 
+    settle_ctr = 0;
     row2 = ConvertToRow(sel_candy_idx_);
     col2 = ConvertToCol(sel_candy_idx_);
 
+    // alter row/column values for square to swap into based on move direction
     if(dir == 'N') {
         row2++;
     } else if(dir == 'S') {
@@ -145,6 +165,7 @@ bool GameModel::SwapCandy(const char &dir) {
         return false;
     }
 
+    // if the more direction is invalid (goes off the board), return false
     if(col2 < 0 || row2 < 0 || row2 >= GetRowLength() || col2 >= GetColLength()) {
         return false;
     }
@@ -154,8 +175,14 @@ bool GameModel::SwapCandy(const char &dir) {
     cout << "Preswap: " << endl;
     PrintBoard();
 
+    // Swaps the candies and verifies that a match is made by doing so.
+    // If invalid swap, re-swaps the candies and returns false.
     if(TrySwap(sel_candy_idx_, idx2)) {
         moves_made_++;
+        // Loop fires templates in order of priority,
+        // applies gravity, fills empty slots, and checks for
+        // new matches. Executes until board settles or loop has executed
+        // a maximum number of times.
         while(settle_ctr < MAX_SETTLE && FireBoardLoop()) {
             cout << "Post Fire: " << endl;
             PrintBoard();
@@ -165,17 +192,15 @@ bool GameModel::SwapCandy(const char &dir) {
             PrintBoard();
 
             FillFromExtensionBoard();
-
             cout << "Post Fill: " << endl;
             PrintBoard();
 
             settle_ctr++;
         }
-
+        // Reset selected candy
         SetSelectedCandy(NO_CANDY);
         return true;
     }
-
     return false;
 }
 
@@ -189,6 +214,7 @@ void GameModel::SerializeGame(const string &filepath) {
 
 }
 
+// Frees old candy, creates a new candy, adds to gameboard array
 void GameModel::SetCandy(const int &idx, const int &color, const int &type) {
     FreeCandy(idx);
 
@@ -198,18 +224,23 @@ void GameModel::SetCandy(const int &idx, const int &color, const int &type) {
     game_board_->data[idx] = (Array_t)(candy);
 }
 
+// Takes candy data from source index and fills candy at dest index
 void GameModel::SetCandy(const int &dest_idx, const int &source_idx) {
     int new_color = GetCandyColor(source_idx);
 
     SetCandy(dest_idx, new_color, DEFAULT_CANDY_TYPE);
 }
 
+// Free Candy struct
 bool GameModel::FreeCandy(const int &idx) {
     Array_t old_candy = (Array_t) game_board_->data[idx];
     free(old_candy);
     return true;
 }
 
+// Swaps two candies and looks to see if swapping creates at
+// least one template, confirming that swap is valid.
+// Returns true if valid, false otherwise
 bool GameModel::TrySwap(const int &idx1, const int &idx2) {
     bool matched;
 
@@ -223,6 +254,8 @@ bool GameModel::TrySwap(const int &idx1, const int &idx2) {
     return matched;
 }
 
+// Looks for a match along the vertical interval of a given index.
+// Returns true if found, false otherwise.
 bool GameModel::HasVerticalMatch(const int &idx) {
     int size = 0;
     vector<int> candy_seq;
@@ -244,6 +277,8 @@ bool GameModel::HasVerticalMatch(const int &idx) {
     return false;
 }
 
+// Looks for a match along the horizontal interval of a given index.
+// Returns true if found, false otherwise.
 bool GameModel::HasHorizontalMatch(const int &idx) {
     int size, max_row_idx, max_match_idx, max_idx;
     size = 0;
@@ -271,6 +306,7 @@ bool GameModel::HasHorizontalMatch(const int &idx) {
     return false;
 }
 
+// Scans candy sequence vector looking for a template of at least minimum length
 bool GameModel::ScanSequence(const int size, vector<int> candy_seq) {
     int seq_count = 0;
     int color = -2;
@@ -296,6 +332,8 @@ bool GameModel::ScanSequence(const int size, vector<int> candy_seq) {
     return false;
 }
 
+// Fire candy templates in order of priority: vFour, hFour, vThree, hThree.
+// Returns true if any firings occur.
 bool GameModel::FireBoardLoop() {
     bool fired = FindAndFireTemplates(4, true);
     fired |= FindAndFireTemplates(4, false);
@@ -305,10 +343,13 @@ bool GameModel::FireBoardLoop() {
     return fired;
 }
 
+// Find templates, starting with index 0.
 bool GameModel::FindAndFireTemplates(const int &num, const bool &isVertical) {
     bool fired;
     int seq_count, color, length, width, increment, idx;
 
+    // Set the direction and increment interval for each index,
+    // allowing the function to be used for vertical or horizontal moves
     if(isVertical) {
         length = GetColLength();
         width = GetRowLength();
@@ -326,7 +367,7 @@ bool GameModel::FindAndFireTemplates(const int &num, const bool &isVertical) {
         seq_count = 0;
         color = -2;
         for(int j = 0; j < width; j++) {
-            if(GetCandyColor(idx) == -1) {
+            if(GetCandyColor(idx) == NO_CANDY) {
                 color = -2;
                 seq_count = 0;
             } else if(GetCandyColor(idx) == color) {
@@ -351,10 +392,12 @@ bool GameModel::FindAndFireTemplates(const int &num, const bool &isVertical) {
     return fired;
 }
 
+// If template is found, fire those candies, marking those candy's
+// color values as fired
 bool GameModel::FireTemplate(int idx, const int &num, const int &increment) {
 
     for(int seq_len = 0; seq_len < num; seq_len++) {
-        SetCandy(idx, -1, 0);
+        SetCandy(idx, NO_CANDY, DEFAULT_CANDY_TYPE);
         AdjustScore(idx);
         idx -= increment;
     }
@@ -362,6 +405,7 @@ bool GameModel::FireTemplate(int idx, const int &num, const int &increment) {
     return true;
 }
 
+// Adjust score and decrement firings remaining for square, if any.
 void GameModel::AdjustScore(const int &idx) {
     long firings_left = (long)(fired_state_->data[idx]);
 
@@ -372,6 +416,7 @@ void GameModel::AdjustScore(const int &idx) {
     }
 }
 
+// Drop candies from higher indices to fill empty squares (vertically)
 void GameModel::ApplyGravity() {
     int src_idx;
     for(int dest_idx = 0; dest_idx < GetBoardSize() - GetRowLength(); dest_idx++) {
@@ -387,6 +432,8 @@ void GameModel::ApplyGravity() {
     }
 }
 
+// Fill empty squares with candies from extension board, based on next
+// row indicated in extension offset vector (representing each column)
 void GameModel::FillFromExtensionBoard() {
     cout << "Attempting to Fill" << endl;
     for(int idx = 0; idx < GetBoardSize(); idx++) {

@@ -28,7 +28,6 @@ class GameModel {
         int GetMaxScore() const;
 
         int GetSelectedCandyIdx() const;
-        CandyPtr GetSelectedCandyPtr() const;
         int GetCandyColor(const int &idx) const;
 
         int GetBoardSize() const;
