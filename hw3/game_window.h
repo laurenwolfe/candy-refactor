@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../hw2/array2d.h"
+#include <array2d.h>
 #include "model.h"
 
 // GLOBALS --------------------------------------------------------

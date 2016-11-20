@@ -79,7 +79,7 @@ int GetMoves(BoardPtr gameboard) {
 
 //Swap the position of two candies
 boolean SwapCandy(BoardPtr gameboard, char dir) {
-    int idx1, idx2, row, col;
+    int row1, col1, row2, col2, idx1, idx2;
 
     //Validate input, verify that a candy has been selected and moves remain
     if(gameboard == NULL || gameboard->selected_idx == NO_CANDY ||
@@ -87,35 +87,39 @@ boolean SwapCandy(BoardPtr gameboard, char dir) {
         return false;
     }
 
-    idx1 = gameboard->selected_idx;
-    idx2 = gameboard->selected_idx;
+    row1 = GetRow(gameboard, gameboard->selected_idx);
+    col1 = GetCol(gameboard, gameboard->selected_idx);
+    row2 = row1;
+    col2 = col1;
 
     //Get relative index for element in swap direction
     if(dir == 'N') {
-        idx2 -= GetColLength(gameboard);
+        row2++;
     } else if(dir == 'S') {
-        idx2 += GetColLength(gameboard);
+        row2--;
     } else if(dir == 'E') {
-        idx2++;
+        col2--;
     } else if(dir == 'W') {
-        idx2--;
+        col2++;
     } else {
         return false;
     }
 
-    row = GetRow(gameboard, idx2);
-    col = GetCol(gameboard, idx2);
-
     //Ensure that move is legal
-    if(idx2 < 0 || row >= GetRowLength(gameboard) ||
-            col >= GetColLength(gameboard)) {
+    if(col2 < 0 || row2 < 0 ||
+            row2 >= GetRowLength(gameboard) ||
+            col2 >= GetColLength(gameboard)) {
         return false;
     }
+
+    idx1 = GetIdx(gameboard, row1, col1);
+    idx2 = GetIdx(gameboard, row2, col2);
 
     // Return true if swap is a valid move and executes successfully
     if(IsValidSwap(gameboard, idx1, idx2) &&
             Swap(gameboard->array_ptr, idx1, idx2)) {
         gameboard->moves--;
+        SetSelectedCandy(gameboard, NO_CANDY);
         return true;
     }
     return false;
@@ -183,6 +187,11 @@ int GetRow(BoardPtr gameboard, int idx) {
 // converts an index into its corresponding row
 int GetCol(BoardPtr gameboard, int idx) {
     return idx % GetRowLength(gameboard);
+}
+
+// converts a row, col into an index
+int GetIdx(BoardPtr gameboard, int row, int col) {
+    return row * GetColLength(gameboard) + col;
 }
 
 // Get value of candy at the provided index.
