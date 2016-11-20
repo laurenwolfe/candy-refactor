@@ -25,38 +25,45 @@ class GameModel {
         int GetGameID() const { return game_id_; };
 
         int GetMovesRemaining() const;
+        int GetMaxScore() const;
+
         int GetSelectedCandyIdx() const;
         CandyPtr GetSelectedCandyPtr() const;
         int GetCandyColor(const int &idx) const;
+
+        int GetBoardSize() const;
         int GetRowLength() const;
         int GetColLength() const;
+        int ConvertToRow(const int &idx) const;
+        int ConvertToCol(const int &idx) const;
         int ConvertToIdx(const int &row, const int &col) const;
-        int GetBoardSize() const;
-        int GetMaxScore() const;
+
         void PrintBoard();
+        bool IsGameOver();
 
         void SetSelectedCandy(int idx);
         bool SwapCandy(const char &dir);
-        bool IsGameOver();
 
     private:
         void DeserializeGame(const string &filepath);
         void SerializeGame(const string &filepath);
 
-        bool TrySwap(const int &idx1, const int &idx2);
-        bool MadeMatch(const int &idx, );
-        bool HasVerticalMatch(const int &idx);
-        bool HasHorizontalMatch(const int &idx);
-        bool ScanSequence(const int size, vector<int> candy_seq);
         void SetCandy(const int &idx, const int &color, const int &type);
         void SetCandy(const int &dest_idx, const int &source_idx);
         bool FreeCandy(const int &idx);
+
+        bool TrySwap(const int &idx1, const int &idx2);
+        bool HasVerticalMatch(const int &idx);
+        bool HasHorizontalMatch(const int &idx);
+        bool ScanSequence(const int size, vector<int> candy_seq);
+
         bool FireBoardLoop();
         bool FindAndFireTemplates(const int &num, const bool &isVertical);
         bool FireTemplate(int idx, const int &num, const int &increment);
-        void AdjustScore(const int &idx); //if fires remaining, inc score and dec fires
         void ApplyGravity();
         void FillFromExtensionBoard();
+
+        void AdjustScore(const int &idx); //if fires remaining, inc score and dec fires
 
         Array2D extension_board_; //extra candy to drop
         Array2D game_board_; //current visible board

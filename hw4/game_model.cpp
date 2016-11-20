@@ -46,6 +46,16 @@ int GameModel::GetMovesRemaining() const {
     return total_moves_ - moves_made_;
 }
 
+int GameModel::GetMaxScore() const {
+    int max_score = 0;
+
+    for(int i = 0; i < GetBoardSize(); i++) {
+        max_score += (long)original_fired_state_->data[i];
+    }
+
+    return max_score;
+}
+
 int GameModel::GetSelectedCandyIdx() const {
     return sel_candy_idx_;
 }
@@ -58,6 +68,10 @@ int GameModel::GetCandyColor(const int &idx) const {
     CandyPtr candy;
     candy = (CandyPtr) game_board_->data[idx];
     return candy->color;
+}
+
+int GameModel::GetBoardSize() const {
+    return game_board_->num_rows * game_board_->num_cols;
 }
 
 int GameModel::GetRowLength() const {
@@ -80,18 +94,27 @@ int GameModel::ConvertToIdx(const int &row, const int &col) const {
     return row * GetColLength() + col;
 }
 
-int GameModel::GetBoardSize() const {
-    return game_board_->num_rows * game_board_->num_cols;
+void GameModel::PrintBoard() {
+    int idx = GetBoardSize() - 1;
+    cout << "Current board state:" << endl;
+    for(int i = GetRowLength(); i > 0; i--) {
+        for(int j = GetColLength(); j > 0; j--) {
+            cout << GetCandyColor(idx) << " ";
+            idx--;
+        }
+        cout << endl;
+    }
+    cout << "============" << endl;
 }
 
-int GameModel::GetMaxScore() const {
-    int max_score = 0;
-
-    for(int i = 0; i < GetBoardSize(); i++) {
-        max_score += (long)original_fired_state_->data[i];
+bool GameModel::IsGameOver() {
+    if(score_ == max_score_) {
+        return true;
+    } else if(GetMovesRemaining() == 0) {
+        return true;
+    } else {
+        return false;
     }
-
-    return max_score;
 }
 
 void GameModel::SetSelectedCandy(int idx) {
@@ -156,16 +179,6 @@ bool GameModel::SwapCandy(const char &dir) {
     return false;
 }
 
-bool GameModel::IsGameOver() {
-    if(score_ == max_score_) {
-        return true;
-    } else if(GetMovesRemaining() == 0) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
 void GameModel::DeserializeGame(const string &filepath) {
     //TODO
 
@@ -174,6 +187,27 @@ void GameModel::DeserializeGame(const string &filepath) {
 void GameModel::SerializeGame(const string &filepath) {
     //TODO
 
+}
+
+void GameModel::SetCandy(const int &idx, const int &color, const int &type) {
+    FreeCandy(idx);
+
+    CandyPtr candy = (CandyPtr)malloc(sizeof(Candy));
+    candy->color = color;
+    candy->type = type;
+    game_board_->data[idx] = (Array_t)(candy);
+}
+
+void GameModel::SetCandy(const int &dest_idx, const int &source_idx) {
+    int new_color = GetCandyColor(source_idx);
+
+    SetCandy(dest_idx, new_color, DEFAULT_CANDY_TYPE);
+}
+
+bool GameModel::FreeCandy(const int &idx) {
+    Array_t old_candy = (Array_t) game_board_->data[idx];
+    free(old_candy);
+    return true;
 }
 
 bool GameModel::TrySwap(const int &idx1, const int &idx2) {
@@ -260,27 +294,6 @@ bool GameModel::ScanSequence(const int size, vector<int> candy_seq) {
         return true;
     }
     return false;
-}
-
-void GameModel::SetCandy(const int &idx, const int &color, const int &type) {
-    FreeCandy(idx);
-
-    CandyPtr candy = (CandyPtr)malloc(sizeof(Candy));
-    candy->color = color;
-    candy->type = type;
-    game_board_->data[idx] = (Array_t)(candy);
-}
-
-void GameModel::SetCandy(const int &dest_idx, const int &source_idx) {
-    int new_color = GetCandyColor(source_idx);
-
-    SetCandy(dest_idx, new_color, DEFAULT_CANDY_TYPE);
-}
-
-bool GameModel::FreeCandy(const int &idx) {
-    Array_t old_candy = (Array_t) game_board_->data[idx];
-    free(old_candy);
-    return true;
 }
 
 bool GameModel::FireBoardLoop() {
@@ -388,19 +401,6 @@ void GameModel::FillFromExtensionBoard() {
             extension_offset_.at(extension_col) += 1;
         }
     }
-}
-
-void GameModel::PrintBoard() {
-    int idx = GetBoardSize() - 1;
-    cout << "Current board state:" << endl;
-    for(int i = GetRowLength(); i > 0; i--) {
-        for(int j = GetColLength(); j > 0; j--) {
-            cout << GetCandyColor(idx) << " ";
-            idx--;
-        }
-        cout << endl;
-    }
-    cout << "============" << endl;
 }
 
 //Deserialize data in json file provided as a command line argument
