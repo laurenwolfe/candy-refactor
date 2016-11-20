@@ -10,6 +10,7 @@ using namespace std;
 extern "C" void DeserializeFunction(Array2D, Json_ptr);
 extern "C" void DeserializeFunction2(Array2D, Json_ptr);
 
+// --- CONSTRUCTORS -----------------------------------------------------------
 GameModel::GameModel() {
     char *file1 = (char *)"test1.json";
     char *file2 = (char *)"test2.json";
@@ -37,7 +38,9 @@ GameModel::GameModel() {
 GameModel::GameModel(string filepath) {
     DeserializeGame(filepath);
 }
+// ----------------------------------------------------------------------------
 
+// --- PUBLIC METHODS ---------------------------------------------------------
 int GameModel::GetMovesRemaining() const {
     return total_moves_ - moves_made_;
 }

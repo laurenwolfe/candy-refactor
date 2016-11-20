@@ -24,7 +24,7 @@ extern "C" static void CandyFreeFunction(Array_t candy_ptr) {
   free(candy_ptr);
 }
 
-// --- Serialize Functions ---------------------------------------------------------------
+// --- Serialize Functions ----------------------------------------------------
 // serializes an entire game instance including the gamedef and the gamestate
 bool SerializeGameInstance(char* filepath) {
   json_t *json_gameinstance, *json_gamedef, *json_gamestate;

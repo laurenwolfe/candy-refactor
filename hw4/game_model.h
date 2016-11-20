@@ -18,6 +18,7 @@ typedef struct candy {
 
 class GameModel {
     public:
+        // --- Constructors ---
         GameModel();
         GameModel(string filepath);
 
@@ -41,9 +42,24 @@ class GameModel {
         bool IsGameOver();
 
     private:
+        // --- Deserialize Functions ---
         void DeserializeGame(const string &filepath);
-        void SerializeGame(const string &filepath);
+        bool DeserializeGameInstance(const string &filepath);
+        bool DeserializeGameDef(json_t* game_instance);
+        bool DeserializeGameState(json_t* game_instance);
+        static Array2D DeserializeArray2D(json_t* serialized_array2d, ElDeserializeFnPtr deserialize_function);
+        static void FillCandyArray2D(Array2D array, json_t* data);
+        static void FillArrayInt2D(Array2D array, json_t* data);
 
+        // --- Serialize Functions ---
+        void SerializeGame(const string &filepath);
+        bool SerializeGameInstance(char* filepath);
+        json_t* SerializeGameDef(void);
+        json_t* SerializeGameState(void);
+        json_t* SerializeCandyArray2D(Array2D array);
+        json_t* SerializeIntArray2D(Array2D array);
+
+        // --- Private Functions ---
         bool TrySwap(const int &idx1, const int &idx2);
         bool HasVerticalMatch(const int &idx);
         bool HasHorizontalMatch(const int &idx);
@@ -59,6 +75,7 @@ class GameModel {
         void ApplyGravity();
         void FillFromExtensionBoard();
 
+        // --- Class Instance Variables --- 
         Array2D extension_board_; //extra candy to drop
         Array2D game_board_; //current visible board
         Array2D fired_state_; //how many times each cell needs to fire before win
@@ -69,6 +86,8 @@ class GameModel {
         int moves_made_;
         int num_colors_; //number of colors for this game board
         int score_ = 0;
+
+        // --- Class Constants ---
         const int NO_CANDY = -1;
         const int MIN_MATCH_LENGTH = 3;
         const int DEFAULT_CANDY_TYPE = 0;
