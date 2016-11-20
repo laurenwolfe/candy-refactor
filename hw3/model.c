@@ -86,7 +86,7 @@ boolean SwapCandy(BoardPtr gameboard, char dir) {
             gameboard->moves == 0) {
         return false;
     }
-
+    
     idx1 = gameboard->selected_idx;
     idx2 = gameboard->selected_idx;
 
