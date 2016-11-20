@@ -30,10 +30,9 @@ class GameModel {
         int GetCandyColor(const int &idx) const;
         int GetRowLength() const;
         int GetColLength() const;
-        int ConvertToRow(const int &idx) const;
-        int ConvertToCol(const int &idx) const;
         int ConvertToIdx(const int &row, const int &col) const;
         int GetBoardSize() const;
+        int GetMaxScore() const;
         void PrintBoard();
 
         void SetSelectedCandy(int idx);
@@ -45,6 +44,7 @@ class GameModel {
         void SerializeGame(const string &filepath);
 
         bool TrySwap(const int &idx1, const int &idx2);
+        bool MadeMatch(const int &idx, );
         bool HasVerticalMatch(const int &idx);
         bool HasHorizontalMatch(const int &idx);
         bool ScanSequence(const int size, vector<int> candy_seq);
@@ -53,14 +53,14 @@ class GameModel {
         bool FreeCandy(const int &idx);
         bool FireBoardLoop();
         bool FindAndFireTemplates(const int &num, const bool &isVertical);
-        bool FindAndFireVerticalMatch(const int &num);
-        bool FindAndFireHorizontalMatch(const int &num);
+        bool FireTemplate(int idx, const int &num, const int &increment);
         void AdjustScore(const int &idx); //if fires remaining, inc score and dec fires
         void ApplyGravity();
         void FillFromExtensionBoard();
 
         Array2D extension_board_; //extra candy to drop
         Array2D game_board_; //current visible board
+        Array2D original_fired_state_;
         Array2D fired_state_; //how many times each cell needs to fire before win
         vector<int> extension_offset_; //row number for next drop position of extension board
         int sel_candy_idx_ = -1; //button-selected candy
@@ -68,6 +68,7 @@ class GameModel {
         int total_moves_;
         int moves_made_;
         int num_colors_; //number of colors for this game board
+        int max_score_;
         int score_ = 0;
         const int NO_CANDY = -1;
         const int MIN_MATCH_LENGTH = 3;

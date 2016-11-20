@@ -24,6 +24,9 @@ GameModel::GameModel() {
     fired_state_ = AllocateArray2D();
     Deserialize(fired_state_, file3, &DeserializeFunction);
 
+    original_fired_state_ = AllocateArray2D();
+    Deserialize(original_fired_state_, file3, &DeserializeFunction);
+
     for(int i = 0; i < game_board_->num_cols; i++) {
         extension_offset_.push_back(0);
     }
@@ -32,6 +35,7 @@ GameModel::GameModel() {
     total_moves_ = 20;
     moves_made_ = 0;
     num_colors_ = 6;
+    max_score_ = GetMaxScore();
 }
 
 GameModel::GameModel(string filepath) {
@@ -80,6 +84,16 @@ int GameModel::GetBoardSize() const {
     return game_board_->num_rows * game_board_->num_cols;
 }
 
+int GameModel::GetMaxScore() const {
+    int max_score = 0;
+
+    for(int i = 0; i < GetBoardSize(); i++) {
+        max_score += (long)original_fired_state_->data[i];
+    }
+
+    return max_score;
+}
+
 void GameModel::SetSelectedCandy(int idx) {
     sel_candy_idx_ = idx;
 }
@@ -89,7 +103,7 @@ bool GameModel::SwapCandy(const char &dir) {
 
     settle_ctr = 0;
 
-    if(GetSelectedCandyPtr() == nullptr) {
+    if(GetSelectedCandyPtr() == nullptr || IsGameOver()) {
         return false;
     }
 
@@ -118,9 +132,8 @@ bool GameModel::SwapCandy(const char &dir) {
     PrintBoard();
 
     if(TrySwap(sel_candy_idx_, idx2)) {
+        moves_made_++;
         while(settle_ctr < MAX_SETTLE && FireBoardLoop()) {
-            moves_made_++;
-
             cout << "Post Fire: " << endl;
             PrintBoard();
 
@@ -133,14 +146,6 @@ bool GameModel::SwapCandy(const char &dir) {
             cout << "Post Fill: " << endl;
             PrintBoard();
 
-            /*
-            cout << "Extension offsets: ";
-            for(auto it = extension_offset_.begin();
-                it < extension_offset_.end(); it++) {
-                cout << *it << " ";
-            }
-            cout << endl;
-            */
             settle_ctr++;
         }
 
@@ -152,8 +157,13 @@ bool GameModel::SwapCandy(const char &dir) {
 }
 
 bool GameModel::IsGameOver() {
-    //TODO
-    return false;
+    if(score_ == max_score_) {
+        return true;
+    } else if(GetMovesRemaining() == 0) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 void GameModel::DeserializeGame(const string &filepath) {
@@ -179,8 +189,6 @@ bool GameModel::TrySwap(const int &idx1, const int &idx2) {
     return matched;
 }
 
-// These could probably be optimized to work with any minimum match length,
-// but works for now
 bool GameModel::HasVerticalMatch(const int &idx) {
     int size = 0;
     vector<int> candy_seq;
@@ -202,8 +210,6 @@ bool GameModel::HasVerticalMatch(const int &idx) {
     return false;
 }
 
-// These could probably be optimized to work with any minimum match length,
-// but works for now
 bool GameModel::HasHorizontalMatch(const int &idx) {
     int size, max_row_idx, max_match_idx, max_idx;
     size = 0;
@@ -278,137 +284,69 @@ bool GameModel::FreeCandy(const int &idx) {
 }
 
 bool GameModel::FireBoardLoop() {
-    bool fired = FindAndFireVerticalMatch(4);
-    fired |= FindAndFireHorizontalMatch(4);
-    fired |= FindAndFireVerticalMatch(3);
-    fired |= FindAndFireHorizontalMatch(3);
-    if(fired) {
-        cout << "Fired successfully!" << endl;
-    } else {
-        cout << "Didn't fire." << endl;
-    }
+    bool fired = FindAndFireTemplates(4, true);
+    fired |= FindAndFireTemplates(4, false);
+    fired |= FindAndFireTemplates(3, true);
+    fired |= FindAndFireTemplates(3, false);
+
     return fired;
 }
 
 bool GameModel::FindAndFireTemplates(const int &num, const bool &isVertical) {
-    bool fired = false;
-    int seq_count, color;
+    bool fired;
+    int seq_count, color, length, width, increment, idx;
 
-    for(int idx = 0; idx < GetBoardSize(); idx++) {
-        if(isVertical) {
-            //traverse each column, looking for num sized sequence
-            //if
-        } else {
-
-        }
+    if(isVertical) {
+        length = GetColLength();
+        width = GetRowLength();
+        increment = GetRowLength();
+    } else {
+        length = GetRowLength();
+        width = GetColLength();
+        increment = 1;
     }
-}
 
-bool GameModel::FindAndFireVerticalMatch(const int &num) {
-    bool fired = false;
-    int idx = 0;
-    int idx, seq_count, color;
+    idx = 0;
+    fired = false;
 
-    for(int col = 0; col < GetRowLength(); col++) {
-        if (seq_count == num) {
-            for (int i = 0; i < num; i++) {
-                SetCandy(idx, -1, 0);
-                AdjustScore(idx);
-                idx -= GetRowLength();
-            }
-            fired = true;
-        }
+    for(int i = 0; i < length; i++) {
         seq_count = 0;
         color = -2;
-        for (int row = 0; row < GetColLength(); row++) {
-            idx = ConvertToIdx(row, col);
-
-            if (seq_count == num) {
-                for (int i = 0; i < num; i++) {
-                    SetCandy(idx, -1, 0);
-                    AdjustScore(idx);
-                    idx -= GetRowLength();
-                }
-                seq_count = 0;
+        for(int j = 0; j < width; j++) {
+            if(GetCandyColor(idx) == -1) {
                 color = -2;
-                fired = true;
-            }
-
-            if (GetCandyColor(idx) == color) {
+                seq_count = 0;
+            } else if(GetCandyColor(idx) == color) {
                 seq_count++;
-            } else if (GetCandyColor(idx) == -1) {
-                color = -2;
-                seq_count = 0;
+
+                if(seq_count == num) {
+                    fired = FireTemplate(idx, num, increment);
+                    color = -2;
+                    seq_count = 0;
+                }
             } else {
                 color = GetCandyColor(idx);
                 seq_count = 1;
             }
+            idx = (idx + increment) % (GetBoardSize() - 1);
         }
-    }
-
-    if (seq_count == num) {
-        for (int i = 0; i < num; i++) {
-            SetCandy(idx, -1, 0);
-            AdjustScore(idx);
-            idx -= GetRowLength();
-        }
-        fired = true;
-    }
-
-    return fired;
-}
-
-bool GameModel::FindAndFireHorizontalMatch(const int &num) {
-    int idx, seq_count, color;
-    bool fired = false;
-
-    for(int row = 0; row < GetColLength(); row++) {
-        seq_count = 0;
-        color = -2;
-        for(int col = 0; col < GetRowLength(); col++) {
-            idx = ConvertToIdx(row, col);
-
-            if(seq_count == num) {
-                for(int i = 0; i < num; i++) {
-                    SetCandy(idx, -1, 0);
-                    AdjustScore(idx);
-                    idx--;
-                }
-                seq_count = 0;
-                color = -2;
-                fired = true;
-            }
-
-            if(GetCandyColor(idx) == color) {
-                seq_count++;
-            } else if(GetCandyColor(idx) == -1) {
-                color = -2;
-                seq_count = 0;
-            } else {
-                color = GetCandyColor(idx);
-                seq_count = 1;
-            }
-        }
-
         if(seq_count == num) {
-            for (int i = 0; i < num; i++) {
-                SetCandy(idx, -1, 0);
-                AdjustScore(idx);
-                idx--;
-            }
-            fired = true;
+            fired = FireTemplate(idx, num, increment);
         }
-    }
-    if (seq_count == num) {
-        for (int i = 0; i < num; i++) {
-            SetCandy(idx, -1, 0);
-            AdjustScore(idx);
-            idx -= GetRowLength();
-        }
-        fired = true;
     }
 
     return fired;
+}
+
+bool GameModel::FireTemplate(int idx, const int &num, const int &increment) {
+
+    for(int seq_len = 0; seq_len < num; seq_len++) {
+        SetCandy(idx, -1, 0);
+        AdjustScore(idx);
+        idx -= increment;
+    }
+
+    return true;
 }
 
 void GameModel::AdjustScore(const int &idx) {
