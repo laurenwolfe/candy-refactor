@@ -72,6 +72,7 @@ class GameModel {
         bool HasHorizontalMatch(const int &idx);
         bool ScanSequence(const int size, vector<int> candy_seq);
 
+        int CalculateMaxScore(Array2D gamestate);
         bool FireBoardLoop();
         bool FindAndFireTemplates(const int &num, const bool &isVertical);
         bool FireTemplate(int idx, const int &num, const int &increment);

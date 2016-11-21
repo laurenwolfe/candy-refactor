@@ -237,10 +237,10 @@ bool GameModel::DeserializeGameInstance(const char* &filepath){
 
   return_int = DeserializeGameState(json_gameinstance);
   if (return_int == 0) { // Gamestate was not present
-                         //initialize gameboard
+    //initialize gameboard
     this->game_board_ = (Array2D)malloc(sizeof(Array2DStruct));
     if(this->game_board_ == NULL){ return false; } //out of memory
-                                                   // set all elements in game board to empty candy
+    // set all elements in game board to empty candy
     for (int i = 0; i < GetBoardSize(); i++) {
       SetElement(this->game_board_, i, (Array_t)&EMPTY_CANDY);
     }
@@ -248,7 +248,7 @@ bool GameModel::DeserializeGameInstance(const char* &filepath){
     //initialize fired state
     this->fired_state_ = (Array2D)malloc(sizeof(Array2DStruct));
     if(this->fired_state_ == NULL){ return false; } //out of memory
-                                                    // set fired_state to equal the contents of initial_fired_state
+    // set fired_state to equal the contents of initial_fired_state
     *(this->fired_state_) = *(this->original_fired_state_);
 
     //zero initialize score
@@ -266,10 +266,10 @@ bool GameModel::DeserializeGameInstance(const char* &filepath){
     ApplyGravity();
 
   } else if (return_int == 1) { // Gamestate was present
-                                // game should be fully initialized
-                                // perform any matinance if needed
+    // game should be fully initialized
+    // perform any matinance if needed
   } else { // error occured when attempting to read game state
-           //TODO: signal error somehow
+    //TODO: signal error somehow
     return false;
   }
 
@@ -327,7 +327,7 @@ int GameModel::DeserializeGameState(json_t* game_instance) {
   if(boardstate == nullptr){return -1;} //out of memory
   if(boardcandies == nullptr){return -1;} //out of memory
 
-                                          // create the extension offset
+  // create the extension offset
   size_t idx;
   json_t* value;
   vector<int> extensionoffset;
@@ -343,6 +343,7 @@ int GameModel::DeserializeGameState(json_t* game_instance) {
   this->moves_made_ = movesmade;
   this->score_ = currentscore;
   this->extension_offset_ = extensionoffset;
+  this->max_score_ = CalculateMaxScore(boardstate);
 
   return true;
 }
@@ -375,41 +376,6 @@ Array2D DeserializeArray2D(json_t* serialized_array2d, ElDeserializeFnPtr deseri
   deserialize_fn(array_field, data);
   return array_field;
 }
-
-/*
-extern "C" void FillCandyArray2D(Array2D array, json_t* data){
-json_t* json_value;
-size_t index;
-int color, type;
-Candy* candy_ptr;
-
-json_array_foreach(data, index, json_value) {
-candy_ptr = (Candy*)malloc(sizeof(Candy));
-if(candy_ptr == NULL){ printf("HA! you ran out of mem and are about to segfault"); }
-
-json_unpack(json_value, "{ s:i, s:i }", "color", &(candy_ptr->color), "type", &(candy_ptr->type));
-
-array->data[index] = candy_ptr;
-// printf("\t\t deserialized %lu\n", index);
-}
-
-json_array_clear(data);
-}*/
-
-/*
-void GameModel::FillArrayInt2D(Array2D array, json_t* data){
-json_t* value;
-size_t index;
-int el_value;
-
-json_array_foreach(data, index, value) {
-json_unpack(value, "i", &el_value);
-array->data[index] = (json_t*)((long)el_value);
-// printf("\t\t deserialized %lu\n", index);
-}
-
-json_array_clear(data);
-}*/
 
 void GameModel::SerializeGame(const string &filepath) {
   //TODO
@@ -624,6 +590,11 @@ bool GameModel::FreeCandy(const int &idx) {
   Array_t old_candy = (Array_t) game_board_->data[idx];
   free(old_candy);
   return true;
+}
+
+// returns the maximum possible score for a given gamestate
+int CalculateMaxScore(Array2D gamestate) {
+
 }
 
 // Fire candy templates in order of priority: vFour, hFour, vThree, hThree.
