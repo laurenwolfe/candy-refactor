@@ -29,7 +29,7 @@ GameModel::GameModel() {
   Deserialize(fired_state_, file3, &DeserializeIntFunction);
 
   original_fired_state_ = AllocateArray2D();
-  Deserialize(original_fired_state_, file3, &DeserializeFunction);
+  Deserialize(original_fired_state_, file3, &DeserializeIntFunction);
 
   for(int i = 0; i < game_board_->num_cols; i++) {
     extension_offset_.push_back(0);
@@ -249,13 +249,13 @@ bool GameModel::DeserializeGameInstance(const char* &filepath){
     this->fired_state_ = (Array2D)malloc(sizeof(Array2DStruct));
     if(this->fired_state_ == NULL){ return false; } //out of memory
                                                     // set fired_state to equal the contents of initial_fired_state
-    *(this->fired_state_) = *(this->initial_fired_state_);
+    *(this->fired_state_) = *(this->original_fired_state_);
 
     //zero initialize score
     this->score_ = 0;
 
     //zero initialize extensionoffset
-    extension_offset_.reserve(GetNumCols(this->initial_fired_state_));
+    extension_offset_.reserve(GetNumCols(this->original_fired_state_));
     for (vector<int>::iterator itr = extension_offset_.begin(); itr != extension_offset_.end(); itr++) {
       *itr = 0;
     }
@@ -298,7 +298,7 @@ bool GameModel::DeserializeGameDef(json_t* game_instance){
                                              // assign values obtained from json file to this game object
   this->game_id_ = gameid;
   this->extension_board_ = extensioncolor;
-  this->initial_fired_state_ = boardstate;
+  this->original_fired_state_ = boardstate;
   this->total_moves_ = movesallowed;
   this->num_colors_ = colors;
 
@@ -450,7 +450,7 @@ json_t* GameModel::SerializeGameDef(void){
   json_decref(json_extensioncolor); // may not want these decref statements if the json_gamedef doesn't increment objectref
 
                                     // serialize initial boardstate
-  json_t* json_initialboardstate = SerializeArray2D(this->initial_fired_state_, SerializeIntFunction);
+  json_t* json_initialboardstate = SerializeArray2D(this->original_fired_state_, SerializeIntFunction);
   json_object_set(json_gamedef, "boardstate", json_initialboardstate);
   json_decref(json_initialboardstate); // may not want these decref statements (see above)
 
