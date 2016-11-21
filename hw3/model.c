@@ -86,17 +86,11 @@ boolean SwapCandy(BoardPtr gameboard, char dir) {
             gameboard->moves == 0) {
         return false;
     }
-<<<<<<< HEAD
-    
-    idx1 = gameboard->selected_idx;
-    idx2 = gameboard->selected_idx;
-=======
 
     row1 = GetRow(gameboard, gameboard->selected_idx);
     col1 = GetCol(gameboard, gameboard->selected_idx);
     row2 = row1;
     col2 = col1;
->>>>>>> 4ce80475f40340627a84691f8f6733c732130a89
 
     //Get relative index for element in swap direction
     if(dir == 'N') {
