@@ -46,16 +46,17 @@ class GameModel {
         void DeserializeGame(const string &filepath);
         bool DeserializeGameInstance(const string &filepath);
         bool DeserializeGameDef(json_t* game_instance);
-        bool DeserializeGameState(json_t* game_instance);
-        static Array2D DeserializeArray2D(json_t* serialized_array2d, ElDeserializeFnPtr deserialize_function);
-        static void FillCandyArray2D(Array2D array, json_t* data);
-        static void FillArrayInt2D(Array2D array, json_t* data);
+        int DeserializeGameState(json_t* game_instance);
+        Array2D DeserializeArray2D(json_t* serialized_array2d, ElDeserializeFnPtr deserialize_function);
+        void FillCandyArray2D(Array2D array, json_t* data);
+        void FillArrayInt2D(Array2D array, json_t* data);
 
         // --- Serialize Functions ---
         void SerializeGame(const string &filepath);
         bool SerializeGameInstance(char* filepath);
         json_t* SerializeGameDef(void);
         json_t* SerializeGameState(void);
+        json_t* SerializeArray2D(Array2D array, ElSerializeFnPtr serialize_function);
         json_t* SerializeCandyArray2D(Array2D array);
         json_t* SerializeIntArray2D(Array2D array);
 
@@ -76,16 +77,17 @@ class GameModel {
         void FillFromExtensionBoard();
 
         // --- Class Instance Variables --- 
-        Array2D extension_board_; //extra candy to drop
-        Array2D game_board_; //current visible board
-        Array2D fired_state_; //how many times each cell needs to fire before win
-        vector<int> extension_offset_; //row number for next drop position of extension board
+        Array2D extension_board_; //extra candy to drop (extensioncolor)
+        Array2D game_board_; //current visible board (boardcandies)
+        Array2D initial_fired_state_; //fired state as initally read from gamedef (boardstate)
+        Array2D fired_state_; //how many times each cell needs to fire before win (boardstate)
+        vector<int> extension_offset_; //row number for next drop position of extension board (extensionoffset)
         int sel_candy_idx_ = -1; //button-selected candy
-        int game_id_;
-        int total_moves_;
-        int moves_made_;
-        int num_colors_; //number of colors for this game board
-        int score_ = 0;
+        int game_id_; // (gameid)
+        int total_moves_; // (movesallowed)
+        int moves_made_; // (movesmade)
+        int num_colors_; //number of colors for this game board (colors)
+        int score_ = 0; // (currentscore)
 
         // --- Class Constants ---
         const int NO_CANDY = -1;

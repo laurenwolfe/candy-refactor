@@ -26,7 +26,7 @@ extern "C" static void CandyFreeFunction(Array_t candy_ptr) {
 
 // --- Serialize Functions ----------------------------------------------------
 // serializes an entire game instance including the gamedef and the gamestate
-bool SerializeGameInstance(char* filepath) {
+bool SerializeGameInstance(const char* filepath) {
   json_t *json_gameinstance, *json_gamedef, *json_gamestate;
   
   json_gamedef = this.SerializeGamedef();
@@ -82,23 +82,23 @@ json_t* SerializeGameDef(void) {
   json_t* json_gamedef = json_object();
 
   // serialize gameid
-  json_object_set_new(json_gamedef, "gameid", json_integer(this->gameid));
+  json_object_set_new(json_gamedef, "gameid", json_integer(this->game_id_));
 
   // serialize extensioncolor
-  json_t* json_extensioncolor = SerializeArray2D(this->extensioncolor, SerializeIntArray);
+  json_t* json_extensioncolor = SerializeArray2D(this->extension_board_, SerializeIntArray);
   json_object_set(json_gamedef, "extensioncolor", json_extensioncolor);
   json_decref(json_extensioncolor); // may not want these decref statements if the json_gamedef doesn't increment objectref
 
-  // serialize boardstate
-  json_t* json_boardstate = SerializeArray2D(this->boardstate, SerializeIntArray);
-  json_object_set(json_gamedef, "boardstate", json_boardstate);
-  json_decref(json_boardstate); // may not want these decref statements (see above)
+  // serialize initial boardstate
+  json_t* json_initialboardstate = SerializeArray2D(this->initial_fired_state_, SerializeIntArray);
+  json_object_set(json_gamedef, "boardstate", json_initialboardstate);
+  json_decref(json_initialboardstate); // may not want these decref statements (see above)
 
   // serialize movesallowed
-  json_object_set_new(json_gamedef, "movesallowed", json_integer(this->movesallowed));
+  json_object_set_new(json_gamedef, "movesallowed", json_integer(this->total_moves_));
 
   // serialize colors
-  json_object_set_new(json_gamedef, "colors", json_integer(this->colors));
+  json_object_set_new(json_gamedef, "colors", json_integer(this->num_colors_));
 
   return json_gamedef;
 }
@@ -107,35 +107,40 @@ json_t* SerializeGameState(void) {
   json_t* json_gamedef = json_object();
 
   // serialize boardcandies
-  json_t* json_boardcandies = SerializeArray2D(this->boardcandies, SerializeCandyArray);
+  json_t* json_boardcandies = SerializeArray2D(this->game_board_, SerializeCandyArray);
   json_object_set(json_gamedef, "boardcandies", json_boardcandies);
   json_decref(json_boardcandies); // may not want these decref statements if the json_gamedef doesn't increment objectref
 
   // serialize boardstate
-  json_t* json_boardstate = SerializeArray2D(this->boardstate, SerializeIntArray);
+  json_t* json_boardstate = SerializeArray2D(this->fired_state_, SerializeIntArray);
   json_object_set(json_gamedef, "boardstate", json_boardstate);
   json_decref(json_boardstate); // may not want these decref statements (see above)
 
   // serialize movesmade
-  json_object_set_new(json_gamedef, "movesmade", json_integer(this->movesmade));
+  json_object_set_new(json_gamedef, "movesmade", json_integer(this->moves_made_));
 
   // serialize currentscore
-  json_object_set_new(json_gamedef, "currentscore", json_integer(this->currentscore));
+  json_object_set_new(json_gamedef, "currentscore", json_integer(this->score_));
 
   // serialize extensionoffset
+  //TODO:
   json_t* json_extensionoffset = json_array();
-  for(int i = 0; i < this)
+  for (int i : this->extension_offset_) {
+    json_array_append_new(json_extensionoffset, i);
+  }
+  json_object_set(json_gamedef, "extensionoffset", json_extensionoffset);
   json_decref(json_extensionoffset);
+
   return json_gamedef;
 }
 
-// ---------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
-// --- Deserialize Functions -------------------------------------------------------------
+// --- Deserialize Functions --------------------------------------------------
 
 
 // fills the contents of an array2d with the contents of a json int array
-extern "C" static void FillArray2D(Array2D array, json_t* data) {
+void FillArrayInt2D(Array2D array, json_t* data) {
   json_t* value;
   size_t index;
   int el_value;
@@ -150,25 +155,26 @@ extern "C" static void FillArray2D(Array2D array, json_t* data) {
 }
 
 // fills the contents of a array2D with the contents of a json candy array
-extern "C" static void FillCandyArray2D(Array2D array, json_t* data) {
+void FillCandyArray2D(Array2D array, json_t* data) {
   json_t* json_value;
   size_t index;
   int color, type;
-  Candy* candy;
+  Candy* candy_ptr;
 
   json_array_foreach(data, index, json_value) {
-    candy = (Candy*)malloc(sizeof(Candy));
+    candy_ptr = (Candy*)malloc(sizeof(Candy));
+    if(candy_ptr == NULL){ printf("HA! you ran out of mem and are about to segfault"); }
 
-    json_unpack(json_value, "{ s:i, s:i }", "color", &(candy->color), "type", &(candy->type));
+    json_unpack(json_value, "{ s:i, s:i }", "color", &(candy_ptr->color), "type", &(candy_ptr->type));
 
-    array->data[index] = candy;
+    array->data[index] = candy_ptr;
     // printf("\t\t deserialized %lu\n", index);
   }
 
   json_array_clear(data);
 }
 
-extern "C" static Array2D DeserializeArray2D(json_t* serialized_array2d, ElDeserializeFnPtr deserialize_function) {
+Array2D DeserializeArray2D(json_t* serialized_array2d, ElDeserializeFnPtr deserialize_function) {
   Array2D array_field;
   json_t* data;
   json_error_t error;
@@ -197,7 +203,7 @@ extern "C" static Array2D DeserializeArray2D(json_t* serialized_array2d, ElDeser
   return array_field;
 }
 
-static bool DeserializeGameDef(json_t* game_instance) {
+bool DeserializeGameDef(json_t* game_instance) {
   json_t* json_gamedef;
   int gameid, movesallowed, colors;
   json_t *json_extensioncolor, *json_boardstate;
@@ -213,255 +219,58 @@ static bool DeserializeGameDef(json_t* game_instance) {
 
   extensioncolor = DeserializeArray2D(json_extensioncolor, FillArray2D);
   boardstate = DeserializeArray2D(json_boardstate, FillArray2D);
+  if(extensioncolor == nullptr){ return false; } // out of memory
+  if(boardstate == nullptr){ return false; } // out of memory
+
+  // assign values obtained from json file to this game object
+  this->game_id_ = gameid;
+  this->extension_board_ = extensioncolor;
+  this->initial_fired_state_ = boardstste;
+  this->total_moves_ = movesallowed;
+  this->num_colors_ = colors;
 
   return true;
 }
 
-static bool DeserializeGameState(json_t* game_instance) {
+// returns values:
+//  1: gamestate was found and loaded
+//  0: gamestate was not present
+// -1: Error occured.
+int DeserializeGameState(json_t* game_instance) {
   json_t* json_gamestate;
   int movesmade, currentscore;
   json_t *json_boardcandies, *json_boardstate, *json_extensionoffset;
   Array2D boardcandies, boardstate;
-  vector<int> extensionoffset;
 
   json_gamestate = json_object_get(game_instance, "gamestate");
   if (json_gamestate == NULL) { // gamestate wasn't found
-    return false;
+    return 0;
   }
 
   json_unpack(json_gamestate, "{s:o, s:o, s:i, s:i, s:a}", "boardcandies", &json_boardcandies, "boardstate", &json_boardstate, "movesmade", &movesmade, "currentscore", &currentscore, "extensionoffset", &json_extensionoffset);
 
   boardstate = DeserializeArray2D(json_boardstate, FillArray2D);
   boardcandies = DeserializeArray2D(json_boardcandies, FillCandyArray2D);
+  if(boardstate == nullptr){return -1;} //out of memory
+  if(boardcandies == nullptr){return -1;} //out of memory
 
+  // create the extension offset
   size_t idx;
   json_t* value;
+  vector<int> extensionoffset;
   extensionoffset.reserve(GetNumCols(boardstate));
   json_array_foreach(json_extensionoffset, idx, value) {
     // add int val from  json_extension_offset
     extensionoffset.push_back((int)(json_number_value(value)));
   }
+
+  // assign values obtained from json file to this game object
+  this->game_board_ = boardcandies;
+  this->fired_state_ = boardstste;
+  this->moves_made_ = movesmade;
+  this->score_ = currentscore;
+  this->extension_offset_ = extensionoffset;
+
   return true;
 }
-// ----------------------------------------------------------------------------------------
-/*
-static bool deserialize(char* filename) {
-  json_t *json_gameinstance, *json_gamedef, *json_gamestate;
-  json_error_t error;
-  void* json_iter;
-
-  // fields for gamedef
-  int gameid, movesallowed, colors;
-  json_t *json_extensioncolor, *json_init_boardstate;
-  Array2D extensioncolor, init_boardstate;
-
-  // fields for gamestate
-  int movesmade, currentscore;
-  json_t *json_boardcandies, *json_curr_boardstate, *json_extensionoffset;
-  Array2D boardcandies, curr_boardstate;
-
-  json_gameinstance = json_load_file(filename, 0, &error); // get json object
-
-  // error reading json file
-  if (!json_gameinstance) {
-    fprintf(stderr, "error: on line %d: %s\n", error.line, error.text);
-    return;
-  }
-
-  json_iter = json_object_iter_at(json_gameinstance, "gamedef");
-  if(json_iter == NULL){
-    fprintf(stderr, "could not find 'gamedef' in json file");
-    return;
-  }
-  json_gamedef = json_object_iter_value(json_iter);
-  // define values for gamedef
-  json_unpack(json_gamedef, "{s:i, s:o, s:o, s:i, s:i}", "gameid", &gameid, "extensioncolor", &json_extensioncolor, "boardstate", &json_init_boardstate, "movesallowed", &movesallowed, "colors", &colors);
-
-  // deserialize extensioncolor and boardstate
-  Deserialize_json_obj(&extensioncolor, json_extensioncolor); // TODO: define deserialize fn ptr for both
-  Deserialize_json_obj(&init_boardstate, json_init_boardstate);
-
-  // get next object from json iter
-  json_iter = json_object_iter_at(json_gameinstance, "gamestate");
-  if (json_iter != NULL) {
-    // gameinstance had a gamestate
-    json_gamestate = json_object_iter_value(json_iter);
-    json_unpack(json_gamestate, "{s:o, s:o, s:i, s:i, s:a}", "boardcandies", &json_boardcandies, "boardstate", &json_curr_boardstate, "movesmade", &movesmade, "currentscore", &currentscore, "extensionoffset", &json_extensionoffset);
-
-    Deserialize_json_obj(&boardcandies, json_boardcandies);
-    Deserialize_json_obj(&curr_boardstate, json_curr_boardstate);
-
-
-
-  }
-
-
-
-
-
-  // create the gamedef
-  json_gamedef =
-
-  if(!json_object_iter_next(json_iter, gameinstance))
-
-}
-*/
-//// constructor
-//CandyCloneGame::CandyCloneGame() {
-//
-//}
-//
-//// destructor
-//CandyCloneGame::~CandyCloneGame() {
-//
-//}
-//
-//// swaps the currently selected element in the specified direction
-//void swap(direction) {
-//  // call swap on board
-//  // if (swap is illegal) {
-//    // do nothing
-//  // else if (swap does not result in template)
-//    // undo swap
-//    // return some val
-//  // if swap does result in template
-//    // decrement the remaining moves
-//    // settleBoard();
-//}
-//
-//void FindTemplate() {
-//  // search through the color board in row column order from left to right
-//
-//  // for all cells in color_board:
-//    // if( cell_is_vFour_pattern() ){
-//      // signal found pattern
-//      // goto end of function
-//
-//  // for all cells in color_board:
-//    // if( cell_is_hFour_pattern() ){
-//      // signal found pattern
-//      // goto end of function
-//
-//  // for all cells in color_board:
-//    // if( cell_is_vThree_pattern() ){
-//      // signal found pattern
-//      // goto end of function
-//
-//  // for all cells in color_board:
-//    // if( cell_is_hThree_pattern() ){
-//      // signal found pattern
-//      // goto end of function
-//
-//  // if (a cell matched a template)
-//    // return index template was found as well as the type of template it matched
-//    // most likely through a return parameter
-//}
-//
-//private bool CellIsVFourTemplate(int idx) {
-//  // if cell does not have four above
-//    // return false
-//  // if (cell.row + 1 != cell.color) {
-//    // return false;
-//  // if (cell.row + 2 != cell.color) {
-//    // return false;
-//  // if (cell.row + 3 != cell.color) {
-//    // return false;
-//  // else
-//    // return true;
-//}
-//
-//private bool CellIsHFourTemplate(int idx) {
-//  // if cell does not have four to right
-//    // return false
-//  // if (cell.col + 1 != cell.color) {
-//    // return false;
-//  // if (cell.col + 2 != cell.color) {
-//    // return false;
-//  // if (cell.col + 3 != cell.color) {
-//    // return false;
-//  // else
-//    // return true;
-//}
-//
-//private bool CellIsVThreeTemplate(int idx) {
-//  // if cell does not have three above
-//    // return false
-//  // if (cell.row + 1 != cell.color) {
-//    // return false;
-//  // if (cell.row + 2 != cell.color) {
-//    // return false;
-//  // else
-//    // return true;
-//}
-//
-//private bool CellIsHThreeTemplate(int idx) {
-//  // if cell does not have three to right
-//    // return false
-//  // if (cell.col + 1 != cell.color) {
-//    // return false;
-//  // if (cell.col + 2 != cell.color) {
-//    // return false;
-//  // else
-//    // return true;
-//}
-//
-//// assumes that idx and template are both valid
-//void ExplodeCandy(int idx) {
-//  // clear the color at idx in the color board
-//  // decrement the count at idx in the score_board if count >0
-//  // idx and following the specified template
-//}
-//
-//void ExplodeTemplate(String tmplate, int idx){
-//  // for each square in template
-//    // explodeCandy(square)
-//}
-//
-//void settle() {
-//  // GravityAll();
-//
-//
-//  // for all squares in board
-//    // if square has template
-//      // explodeTemplate(template type, square)
-//  // while( findtemplate() is successful ) {
-//    // ExplodeCandy( cell_from_found_template, template);
-//
-//    // if score = 0
-//      // game_won = true;
-//
-//    // GravityAll();
-//}
-//
-//void GravityAll() {
-//  // for each cell in gameboard:
-//    // if(cell is empty)
-//      // GravitySub(cell, 0);
-//}
-//
-//// recursive function that fills in square with next non-empty square above
-//candy GravitySquare(int idx, int lvl) {
-//  // if (idx is outside game board) {
-//    // get next candy from this col in extended_board
-//    // return candy from extended_board
-//
-//  // if (this idx has a candy in it){
-//    // return_candy = getcandy(idx)
-//    // clearCandy(idx)
-//    // return return_candy;
-//  
-//  // if (this idx is empty)
-//    // result_candy = GravitySub(cell above idx, lvl+1);
-//    // if(lvl == 0) {
-//      // we are back at the origional cell
-//      // idx.setCandy(result_candy)
-//      // return null; // (we are finished)
-//    // else 
-//      // continue to propagate candy down
-//      // return result_candy
-//  }
-//
-//
-//
-//}
-
+// ----------------------------------------------------------------------------
