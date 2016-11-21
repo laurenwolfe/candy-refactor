@@ -5,8 +5,13 @@
 #include <string>
 
 extern "C" {
-    #include <array2d.h>
-    #include <jansson.h>
+    // #include <array2d.h>
+    // #include <jansson.h>
+
+    // temporary includes to make visual studio happy
+    // comment out if discovered otherwise
+    #include "../jansson/include/jansson.h"
+    #include "../hw2/array2d.h"
 }
 
 using namespace std;
@@ -20,7 +25,7 @@ class GameModel {
     public:
         // --- Constructors ---
         GameModel();
-        GameModel(string filepath);
+        GameModel(const string &filepath);
 
         int GetScore() const { return score_; };
         int GetGameID() const { return game_id_; };
@@ -43,22 +48,17 @@ class GameModel {
 
     private:
         // --- Deserialize Functions ---
-        void DeserializeGame(const string &filepath);
-        bool DeserializeGameInstance(const string &filepath);
+        bool DeserializeGameInstance(const char* &filepath);
         bool DeserializeGameDef(json_t* game_instance);
         int DeserializeGameState(json_t* game_instance);
         Array2D DeserializeArray2D(json_t* serialized_array2d, ElDeserializeFnPtr deserialize_function);
-        void FillCandyArray2D(Array2D array, json_t* data);
-        void FillArrayInt2D(Array2D array, json_t* data);
 
         // --- Serialize Functions ---
         void SerializeGame(const string &filepath);
-        bool SerializeGameInstance(char* filepath);
+        bool SerializeGameInstance(const char* &filepath);
         json_t* SerializeGameDef(void);
         json_t* SerializeGameState(void);
         json_t* SerializeArray2D(Array2D array, ElSerializeFnPtr serialize_function);
-        json_t* SerializeCandyArray2D(Array2D array);
-        json_t* SerializeIntArray2D(Array2D array);
 
         // --- Private Functions ---
         bool TrySwap(const int &idx1, const int &idx2);
@@ -94,6 +94,7 @@ class GameModel {
         const int MIN_MATCH_LENGTH = 3;
         const int DEFAULT_CANDY_TYPE = 0;
         const int MAX_SETTLE = 1000;
+        const Candy EMPTY_CANDY = {NO_CANDY, 0};
 };
 
 #endif // _GAME_MODEL_H_
