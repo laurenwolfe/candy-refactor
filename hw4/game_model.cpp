@@ -221,7 +221,7 @@ bool GameModel::SwapCandy(const char &dir) {
 // PRIVATE METHODS ============================================================
 
 bool GameModel::DeserializeGameInstance(const char* &filepath){
-  json_t *json_gameinstance, *json_gamedef, *json_gamestate;
+  json_t *json_gameinstance;
   json_error_t error;
   bool return_success;
   int return_int;
@@ -234,9 +234,9 @@ bool GameModel::DeserializeGameInstance(const char* &filepath){
 
   return_success = DeserializeGameDef(json_gameinstance);
   if(!return_success){ return false; } // some error occured 
-
   return_int = DeserializeGameState(json_gameinstance);
   if (return_int == 0) { // Gamestate was not present
+
     //initialize gameboard
     this->game_board_ = (Array2D)malloc(sizeof(Array2DStruct));
     if(this->game_board_ == NULL){ return false; } //out of memory
@@ -265,7 +265,8 @@ bool GameModel::DeserializeGameInstance(const char* &filepath){
     //call settle on board to populate game_board
     ApplyGravity();
 
-  } else if (return_int == 1) { // Gamestate was present
+  } else if (return_int == 1) { 
+    // Gamestate was present
     // game should be fully initialized
     // perform any matinance if needed
   } else { // error occured when attempting to read game state
@@ -295,12 +296,13 @@ bool GameModel::DeserializeGameDef(json_t* game_instance){
   if(extensioncolor == nullptr){ return false; } // out of memory
   if(boardstate == nullptr){ return false; } // out of memory
 
-                                             // assign values obtained from json file to this game object
+  // assign values obtained from json file to this game object
   this->game_id_ = gameid;
   this->extension_board_ = extensioncolor;
   this->original_fired_state_ = boardstate;
   this->total_moves_ = movesallowed;
   this->num_colors_ = colors;
+  this->max_score_ = GetMaxScore();
 
   return true;
 }
@@ -343,7 +345,6 @@ int GameModel::DeserializeGameState(json_t* game_instance) {
   this->moves_made_ = movesmade;
   this->score_ = currentscore;
   this->extension_offset_ = extensionoffset;
-  this->max_score_ = CalculateMaxScore(boardstate);
 
   return true;
 }
@@ -387,6 +388,7 @@ void GameModel::SerializeGame(const string &filepath) {
   }
 }
 
+// TODO: Include return false anywhere an error could occur
 bool GameModel::SerializeGameInstance(const char* &filepath) {
   json_t *json_gameinstance, *json_gamedef, *json_gamestate;
 
@@ -402,6 +404,8 @@ bool GameModel::SerializeGameInstance(const char* &filepath) {
   json_decref(json_gamedef);
   json_decref(json_gamestate);
   json_decref(json_gameinstance);
+
+  return true;
 }
 
 json_t* GameModel::SerializeGameDef(void){
@@ -590,11 +594,6 @@ bool GameModel::FreeCandy(const int &idx) {
   Array_t old_candy = (Array_t) game_board_->data[idx];
   free(old_candy);
   return true;
-}
-
-// returns the maximum possible score for a given gamestate
-int CalculateMaxScore(Array2D gamestate) {
-
 }
 
 // Fire candy templates in order of priority: vFour, hFour, vThree, hThree.

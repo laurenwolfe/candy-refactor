@@ -41,7 +41,6 @@ class GameModel {
         int ConvertToRow(const int &idx) const;
         int ConvertToCol(const int &idx) const;
         int ConvertToIdx(const int &row, const int &col) const;
-        int GetBoardSize() const;
         void PrintBoard();
         bool IsGameOver();
 
@@ -72,7 +71,6 @@ class GameModel {
         bool HasHorizontalMatch(const int &idx);
         bool ScanSequence(const int size, vector<int> candy_seq);
 
-        int CalculateMaxScore(Array2D gamestate);
         bool FireBoardLoop();
         bool FindAndFireTemplates(const int &num, const bool &isVertical);
         bool FireTemplate(int idx, const int &num, const int &increment);
@@ -100,7 +98,7 @@ class GameModel {
         const int MIN_MATCH_LENGTH = 3;
         const int DEFAULT_CANDY_TYPE = 0;
         const int MAX_SETTLE = 1000;
-        const Candy EMPTY_CANDY = {NO_CANDY, 0};
+        const Candy EMPTY_CANDY = {-1, 0};
 };
 
 #endif // _GAME_MODEL_H_
