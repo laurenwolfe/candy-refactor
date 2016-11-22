@@ -240,28 +240,29 @@ bool GameModel::DeserializeGameInstance(const char* &filepath){
   if (return_int == 0) { // Gamestate was not present
 
     //initialize gameboard
-    this->game_board_ = (Array2D)malloc(sizeof(Array2DStruct));
-    if(this->game_board_ == NULL){ return false; } //out of memory
-    // set all elements in game board to empty candy
-    for (int i = 0; i < GetBoardSize(); i++) {
-      SetElement(this->game_board_, i, (Array_t)&EMPTY_CANDY);
-    }
+    this->game_board_ = MakeEmptyGameBoard(GetNumRows(this->original_fired_state_), GetNumCols(this->original_fired_state_));
 
     //initialize fired state
-    this->fired_state_ = (Array2D)malloc(sizeof(Array2DStruct));
+    this->fired_state_ = AllocateArray2D();
     if(this->fired_state_ == NULL){ return false; } //out of memory
     // set fired_state to equal the contents of initial_fired_state
     *(this->fired_state_) = *(this->original_fired_state_);
+    // allocate mem for fired_state->data and copy contents of
+    // origional_fired_state->data into it
+    this->fired_state_->data = (Array_t*)calloc(this->fired_state_->size, sizeof(Array_t));
+    size_t num_bytes_of_data = (this->fired_state_->size * sizeof(Array_t));
+    memcpy(this->fired_state_->data, this->original_fired_state_->data, num_bytes_of_data);
 
     //zero initialize score
     this->score_ = 0;
 
     //zero initialize extensionoffset
     vector<int> extensionoffset ( GetNumCols(this->original_fired_state_), 0);
+    this->extension_offset_ = extensionoffset;
     cout << "extension offset: < ";
-    for (size_t i = 0; i < extensionoffset.size(); i++) {
+    for (size_t i = 0; i < extension_offset_.size(); i++) {
       //extensionoffset.push_back(0);
-      cout << to_string(extensionoffset.at(i)) + " ";
+      cout << to_string(extension_offset_.at(i)) + " ";
     }
     cout << ">" <<endl;
 
@@ -284,6 +285,26 @@ bool GameModel::DeserializeGameInstance(const char* &filepath){
   }
 
   return true;
+}
+
+// allocate an new game_board of dimensions (num_rows * num_cols)
+// and place an empty candy in each cell
+Array2D GameModel::MakeEmptyGameBoard(int num_rows, int num_cols) {
+  //initialize gameboard
+  Array2D new_board;
+  new_board = AllocateArray2D();
+  if(new_board == NULL){ return nullptr; } //out of memory
+
+  // initialize gameboard
+  new_board->num_cols = num_cols;
+  new_board->num_rows = num_rows;
+  new_board->size = num_rows * num_cols;
+  new_board->data = (Array_t*)calloc(new_board->size, sizeof(Array_t));
+  // set all elements in game board to empty candy
+  for (int i = 0; i < new_board->size; i++) {
+    SetElement(new_board, i, (Array_t)&EMPTY_CANDY);
+  }
+  return new_board;
 }
 
 bool GameModel::DeserializeGameDef(json_t* game_instance){
@@ -382,7 +403,7 @@ int GameModel::DeserializeGameState(json_t* game_instance) {
     std::cout << *i << ' ';
   cout << ">" <<endl;
 
-  return true;
+  return 1;
 }
 
 Array2D GameModel::DeserializeArray2D(json_t* serialized_array2d, ElDeserializeFnPtr deserialize_function){
@@ -394,7 +415,7 @@ Array2D GameModel::DeserializeArray2D(json_t* serialized_array2d, ElDeserializeF
   deserialize_fn = deserialize_function;
 
   // allocate space for array2D on heap
-  array_field = (Array2D)malloc(sizeof(Array2DStruct));
+  array_field = AllocateArray2D();
   if (array_field == NULL) { return nullptr; } // out of memory
 
   json_unpack(serialized_array2d, "{s:i, s:i, s:o}", "rows", &rows,
@@ -408,13 +429,13 @@ Array2D GameModel::DeserializeArray2D(json_t* serialized_array2d, ElDeserializeF
   array_field->data = (Array_t*)malloc(sizeof(Array_t) * (array_field->size));
   if (array_field == NULL) { return nullptr; } // out of memory
 
-  // Use client-provided function to insert data into array
   cout << "\nCreating Array2D ----------" <<endl;
   cout << "rows: " + to_string(array_field->num_rows) <<endl;
   cout << "cols: " + to_string(array_field->num_cols) <<endl;
   cout << "size: " + to_string(array_field->size) <<endl;
   cout << "data..." <<endl;
 
+  // Use client-provided function to insert data into array
   deserialize_fn(array_field, data);
   return array_field;
 }
@@ -615,7 +636,11 @@ bool GameModel::ScanSequence(const int size, vector<int> candy_seq) {
 
 // Frees old candy, creates a new candy, adds to gameboard array
 void GameModel::SetCandy(const int &idx, const int &color, const int &type) {
-  FreeCandy(idx);
+  //don't free candy if idx contains EMPTY_CANDY
+  Array_t candy_address = GetElement(this->game_board_, idx);
+  if (candy_address != &EMPTY_CANDY) {
+    FreeCandy(idx);
+  }
 
   CandyPtr candy = (CandyPtr)malloc(sizeof(Candy));
   candy->color = color;
@@ -741,6 +766,7 @@ void GameModel::ApplyGravity() {
 // row indicated in extension offset vector (representing each column)
 void GameModel::FillFromExtensionBoard() {
   cout << "Attempting to Fill" << endl;
+
   for(int idx = 0; idx < GetBoardSize(); idx++) {
     if(GetCandyColor(idx) == NO_CANDY) {
       int extension_col = ConvertToCol(idx);
@@ -776,7 +802,7 @@ void DeserializeCandyFunction(Array2D array, Json_ptr data) {
 
   //Unpack array of Candies from JSON object into the Array2D
   json_array_foreach(data, index, value) {
-    CandyPtr candy = (CandyPtr)malloc(sizeof(Candy));
+    CandyPtr candy = (CandyPtr)calloc(1, sizeof(Candy));
     json_unpack(value, "i", &el_value);
     candy->color = el_value;
     candy->type = 0;

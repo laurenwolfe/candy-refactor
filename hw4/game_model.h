@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <cstring> // for memcpy
 
 extern "C" {
     // #include <array2d.h>
@@ -35,7 +36,6 @@ class GameModel {
         int GetMovesRemaining() const;
         int GetMaxScore() const;
         int GetSelectedCandyIdx() const;
-        CandyPtr GetSelectedCandyPtr() const;
         int GetCandyColor(const int &idx) const;
         int GetBoardSize() const;
         int GetRowLength() const;
@@ -52,6 +52,7 @@ class GameModel {
     private:
         // --- Deserialize Functions ---
         bool DeserializeGameInstance(const char* &filepath);
+        Array2D MakeEmptyGameBoard(int num_rows, int num_cols);
         bool DeserializeGameDef(json_t* game_instance);
         long CalcMaxScore(Array2D score_board);
         int DeserializeGameState(json_t* game_instance);

@@ -4,13 +4,14 @@
 using namespace std;
 
 int main(int argc, char **argv) {
-    GameModel b = GameModel("gameExample_nogamestate.json");
+
+    GameModel b = GameModel("gameExample.json");
 
     cout << "Moves remaining: " << b.GetMovesRemaining() << endl;
     cout << "Score: " << b.GetScore() << endl;
     b.PrintBoard();
 
-    b.SetSelectedCandy(7);
+    b.SetSelectedCandy(0);
     if(b.SwapCandy('E')) {
         cout << "Success!" << endl;
         b.PrintBoard();

@@ -47,4 +47,7 @@ int GetNumRows(Array2D array);
 int GetNumCols(Array2D array);
 int GetSize(Array2D array);
 
+// REFACTOR:
+// add a copy constructor
+// add an empty constructor that just takes row and col
 #endif // _HW2_ARRAY2D_H_
