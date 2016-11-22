@@ -17,12 +17,14 @@ extern "C" {
 using namespace std;
 
 typedef struct candy {
-    int color;
-    int type = 0;
+  candy() : color(-1), type(0) {}
+  int color;
+  int type = 0;
 } Candy, *CandyPtr;
 
 class GameModel {
     public:
+
         // --- Constructors ---
         GameModel();
         GameModel(const string &filepath);
@@ -51,6 +53,7 @@ class GameModel {
         // --- Deserialize Functions ---
         bool DeserializeGameInstance(const char* &filepath);
         bool DeserializeGameDef(json_t* game_instance);
+        long CalcMaxScore(Array2D score_board);
         int DeserializeGameState(json_t* game_instance);
         Array2D DeserializeArray2D(json_t* serialized_array2d, ElDeserializeFnPtr deserialize_function);
 
@@ -98,7 +101,7 @@ class GameModel {
         const int MIN_MATCH_LENGTH = 3;
         const int DEFAULT_CANDY_TYPE = 0;
         const int MAX_SETTLE = 1000;
-        const Candy EMPTY_CANDY = {-1, 0};
+        const Candy EMPTY_CANDY;
 };
 
 #endif // _GAME_MODEL_H_

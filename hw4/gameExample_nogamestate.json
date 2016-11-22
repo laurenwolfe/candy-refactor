@@ -1,0 +1,15 @@
+{ "gamedef": { "gameid" : 12345,
+               "extensioncolor": { "rows": 8,
+				   "columns" : 2,
+				   "data": [0, 1, 2, 3, 4, 5,
+					    0, 1, 2, 3, 4, 5,
+					    0, 1, 2, 3]
+				 },
+	       "boardstate": { "rows" : 2,
+			       "columns" : 2,
+			       "data": [1, 1, 1, 1]
+			     },
+	       "movesallowed": 20,
+	       "colors": 6
+	     }
+}

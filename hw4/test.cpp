@@ -4,11 +4,11 @@
 using namespace std;
 
 int main(int argc, char **argv) {
-    GameModel b;
+    GameModel b = GameModel("gameExample_nogamestate.json");
 
     cout << "Moves remaining: " << b.GetMovesRemaining() << endl;
     cout << "Score: " << b.GetScore() << endl;
-
+    b.PrintBoard();
 
     b.SetSelectedCandy(7);
     if(b.SwapCandy('E')) {

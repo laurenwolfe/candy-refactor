@@ -12,6 +12,8 @@ extern "C" void DeserializeCandyFunction(Array2D, Json_ptr);
 extern "C" json_t* SerializeCandyFunction(Array2D array);
 extern "C" json_t* SerializeIntFunction(Array2D array);
 
+// EMPTY_CANDY = {GameModel::NO_CANDY, DEFAULT_CANDY_TYPE};
+
 // CONSTRUCTORS ===============================================================
 // Empty Constructor is for testing purposes
 GameModel::GameModel() {
@@ -65,7 +67,7 @@ int GameModel::GetMaxScore() const {
   int max_score = 0;
 
   for(int i = 0; i < GetBoardSize(); i++) {
-    max_score += (long)original_fired_state_->data[i];
+    max_score += (long)this->original_fired_state_->data[i];
   }
 
   return max_score;
@@ -255,15 +257,22 @@ bool GameModel::DeserializeGameInstance(const char* &filepath){
     this->score_ = 0;
 
     //zero initialize extensionoffset
-    extension_offset_.reserve(GetNumCols(this->original_fired_state_));
-    for (vector<int>::iterator itr = extension_offset_.begin(); itr != extension_offset_.end(); itr++) {
-      *itr = 0;
+    vector<int> extensionoffset ( GetNumCols(this->original_fired_state_), 0);
+    cout << "extension offset: < ";
+    for (size_t i = 0; i < extensionoffset.size(); i++) {
+      //extensionoffset.push_back(0);
+      cout << to_string(extensionoffset.at(i)) + " ";
     }
+    cout << ">" <<endl;
+
+    //for (auto itr = extension_offset_.begin(); itr != extension_offset_.end(); itr++) {
+    //  *itr = 0;
+    //}
 
     //zero initialize moves_made
     this->moves_made_ = 0;
     //call settle on board to populate game_board
-    ApplyGravity();
+    FillFromExtensionBoard();
 
   } else if (return_int == 1) { 
     // Gamestate was present
@@ -291,7 +300,7 @@ bool GameModel::DeserializeGameDef(json_t* game_instance){
 
   json_unpack(json_gamedef, "{s:i, s:o, s:o, s:i, s:i}", "gameid", &gameid, "extensioncolor", &json_extensioncolor, "boardstate", &json_boardstate, "movesallowed", &movesallowed, "colors", &colors);
 
-  extensioncolor = DeserializeArray2D(json_extensioncolor, DeserializeCandyFunction);
+  extensioncolor = DeserializeArray2D(json_extensioncolor, DeserializeIntFunction);
   boardstate = DeserializeArray2D(json_boardstate, DeserializeIntFunction);
   if(extensioncolor == nullptr){ return false; } // out of memory
   if(boardstate == nullptr){ return false; } // out of memory
@@ -302,9 +311,24 @@ bool GameModel::DeserializeGameDef(json_t* game_instance){
   this->original_fired_state_ = boardstate;
   this->total_moves_ = movesallowed;
   this->num_colors_ = colors;
-  this->max_score_ = GetMaxScore();
+  this->max_score_ = CalcMaxScore(boardstate);
+
+  cout << "\nGameDef read ----------" <<endl;
+  cout << "gameid:" + to_string(this->game_id_) <<endl;
+  cout << "total moves: " + to_string(this->total_moves_) <<endl;
+  cout << "num_colors: " + to_string(this->num_colors_) <<endl;
+  cout << "max score: " + to_string(this->max_score_) <<endl;
 
   return true;
+}
+
+// subroutine used to calculate the max score before the came has been initialized
+long GameModel::CalcMaxScore(Array2D score_board){
+  long max_score = 0;
+  for (int i = 0; i < GetSize(score_board); i++) {
+    max_score += (long)GetElement(score_board, i);
+  }
+  return max_score;
 }
 
 // returns values:
@@ -322,6 +346,7 @@ int GameModel::DeserializeGameState(json_t* game_instance) {
     return 0;
   }
 
+  cout << "Deserializing GameState" <<endl;
   json_unpack(json_gamestate, "{s:o, s:o, s:i, s:i, s:a}", "boardcandies", &json_boardcandies, "boardstate", &json_boardstate, "movesmade", &movesmade, "currentscore", &currentscore, "extensionoffset", &json_extensionoffset);
 
   boardstate = DeserializeArray2D(json_boardstate, DeserializeIntFunction);
@@ -334,10 +359,13 @@ int GameModel::DeserializeGameState(json_t* game_instance) {
   json_t* value;
   vector<int> extensionoffset;
   extensionoffset.reserve(GetNumCols(boardstate));
+  cout << "< ";
   json_array_foreach(json_extensionoffset, idx, value) {
     // add int val from  json_extension_offset
     extensionoffset.push_back((int)(json_number_value(value)));
+    cout << to_string(extensionoffset[idx]) + " ";
   }
+  cout << "\n";
 
   // assign values obtained from json file to this game object
   this->game_board_ = boardcandies;
@@ -346,13 +374,20 @@ int GameModel::DeserializeGameState(json_t* game_instance) {
   this->score_ = currentscore;
   this->extension_offset_ = extensionoffset;
 
+  cout << "\nGamestate read ----------" <<endl;
+  cout << "moves made:" + to_string(this->moves_made_) <<endl;
+  cout << "score: " + to_string(this->score_) <<endl;
+  cout << "extension offset: < ";
+  for (auto i = extensionoffset.begin(); i != extensionoffset.end(); i++)
+    std::cout << *i << ' ';
+  cout << ">" <<endl;
+
   return true;
 }
 
-Array2D DeserializeArray2D(json_t* serialized_array2d, ElDeserializeFnPtr deserialize_function){
+Array2D GameModel::DeserializeArray2D(json_t* serialized_array2d, ElDeserializeFnPtr deserialize_function){
   Array2D array_field;
   json_t* data;
-  json_error_t error;
   int rows, cols;
   ElDeserializeFnPtr deserialize_fn;
 
@@ -373,7 +408,13 @@ Array2D DeserializeArray2D(json_t* serialized_array2d, ElDeserializeFnPtr deseri
   array_field->data = (Array_t*)malloc(sizeof(Array_t) * (array_field->size));
   if (array_field == NULL) { return nullptr; } // out of memory
 
-                                               // Use client-provided function to insert data into array
+  // Use client-provided function to insert data into array
+  cout << "\nCreating Array2D ----------" <<endl;
+  cout << "rows: " + to_string(array_field->num_rows) <<endl;
+  cout << "cols: " + to_string(array_field->num_cols) <<endl;
+  cout << "size: " + to_string(array_field->size) <<endl;
+  cout << "data..." <<endl;
+
   deserialize_fn(array_field, data);
   return array_field;
 }
@@ -463,7 +504,7 @@ json_t* GameModel::SerializeGameState(void){
   return json_gamedef;
 }
 
-json_t* SerializeArray2D(Array2D array, ElSerializeFnPtr serialize_function) {
+json_t* GameModel::SerializeArray2D(Array2D array, ElSerializeFnPtr serialize_function) {
   json_t *json_data, *json_arr;
   ElSerializeFnPtr serialize_fn;
 
@@ -723,6 +764,7 @@ void DeserializeIntFunction(Array2D array, Json_ptr data) {
   json_array_foreach(data, index, value) {
     json_unpack(value, "i", &el_value);
     array->data[index] = (Json_ptr)((long)el_value);
+    printf("read int: %d\n", el_value);
   }
   json_array_clear(data);
 }
@@ -739,6 +781,7 @@ void DeserializeCandyFunction(Array2D array, Json_ptr data) {
     candy->color = el_value;
     candy->type = 0;
     array->data[index] = (Json_ptr)(candy);
+    printf("read Candy: [c:%d,t:%d]\n", candy->color, candy->type);
   }
   json_array_clear(data);
 }
@@ -758,7 +801,7 @@ json_t* SerializeCandyFunction(Array2D array){
 json_t* SerializeIntFunction(Array2D array) {
   json_t* json_arr = json_array();
   for (int i = 0; i < array->size; i++) {
-    json_array_append_new(json_arr, json_integer((int)array->data[i]));
+    json_array_append_new(json_arr, json_integer(*((int*)array->data[i])));
   }
   return json_arr;
 }
