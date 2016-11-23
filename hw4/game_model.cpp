@@ -157,9 +157,6 @@ bool GameModel::SwapCandy(const char &dir) {
 
     idx2 = ConvertToIdx(row2, col2);
 
-    cout << "Preswap: " << endl;
-    PrintBoard();
-
     // Swaps the candies and verifies that a match is made by doing so.
     // If invalid swap, re-swaps the candies and returns false.
     if(TrySwap(sel_candy_idx_, idx2)) {
@@ -522,8 +519,6 @@ void GameModel::SetCandy(const int &dest_idx, const int &source_idx) {
 bool GameModel::TrySwap(const int &idx1, const int &idx2) {
     bool matched;
 
-    cout << "Swap " << idx1 << " and " << idx2 << endl;
-
     Swap(game_board_, idx1, idx2);
 
     matched = HasVerticalMatch(idx1) || HasVerticalMatch(idx2) ||
@@ -582,16 +577,13 @@ bool GameModel::HasVerticalMatch(const int &idx) {
     if(GetColLength() >= MIN_MATCH_LENGTH) {
         //for every valid candy index within interval,
         //add candy color to vector
-        cout << "V Indexes to check: ";
         for (int i = idx - interval; i <= (idx + interval); i = i + GetRowLength()) {
-            cout << i << " ";
             if (i >= 0 && i < GetBoardSize()) {
                 candy_seq.push_back(GetCandyColor(i));
                 size++;
             }
         }
 
-        cout << endl;
 
         return ScanSequence(size, candy_seq);
     }
@@ -614,16 +606,13 @@ bool GameModel::HasHorizontalMatch(const int &idx) {
 
         //for every valid candy index above and below given index,
         //add candy color to vector
-        cout << "H Indexes to check: ";
         for (int i = idx - (MIN_MATCH_LENGTH - 1);
                  i < idx + MIN_MATCH_LENGTH; i++) {
-            cout << i << " ";
             if (i >= 0 && i < max_idx) {
                 candy_seq.push_back(GetCandyColor(i));
                 size++;
             }
         }
-        cout << endl;
         return ScanSequence(size, candy_seq);
     }
     return false;
@@ -634,9 +623,7 @@ bool GameModel::ScanSequence(const int size, vector<int> candy_seq) {
     int seq_count = 0;
     int color = -2;
 
-    cout << "Check Sequence: ";
     for(int i = 0; i < size; i++) {
-        cout << candy_seq[i] << " ";
         //Found sequence!
         if(seq_count == MIN_MATCH_LENGTH) {
             return true;
@@ -650,7 +637,6 @@ bool GameModel::ScanSequence(const int size, vector<int> candy_seq) {
             seq_count = 1;
         }
     }
-    cout << endl;
     //check for last element satisfy minimum match length
     if(seq_count == MIN_MATCH_LENGTH) {
         return true;
@@ -667,13 +653,7 @@ void GameModel::SettleBoard() {
 
     while(settle_ctr < MAX_SETTLE && FireBoardLoop()) {
         ApplyGravity();
-        cout << "Post Gravity: " << endl;
-        PrintBoard();
-
         FillFromExtensionBoard();
-        cout << "Post Fill: " << endl;
-        PrintBoard();
-
         settle_ctr++;
     }
 }
