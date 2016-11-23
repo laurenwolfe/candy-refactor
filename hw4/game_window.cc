@@ -4,10 +4,14 @@ TODO: Write class description
 
 #include "game_window.h"
 
+using GameWindow::app;
+
+
+
 // ------------------------------------------------------------
 // Button callback functions
 // ------------------------------------------------------------
-static void d_button_callback(GtkWidget* widget, gpointer data) {
+extern "C" static void d_button_callback(GtkWidget* widget, gpointer data) {
   char DIRECTION_CHARS[] = {'N', 'W', 'E', 'S'}; // remove this if it can be defined elsewhere
   //printf("%c\n", DIRECTION_CHARS[(int)data]);
   bool swapResult = gameboard.SwapCandy(DIRECTION_CHARS[(int)data]);
@@ -15,15 +19,14 @@ static void d_button_callback(GtkWidget* widget, gpointer data) {
   refresh_window(app);
 }
 
-static void c_button_callback(GtkWidget* widget, gpointer data) {
+extern "C" static void GameWindow::c_button_callback(GtkWidget* widget, gpointer data) {
   gameboard.SetSelectedCandy((int)data);
-
 }
 
 // ------------------------------------------------------------
 // Assemble the window
 // ------------------------------------------------------------
-void make_window(GtkApplication* app) {
+void GameWindow::make_window(GtkApplication* app) {
   GtkWidget* window = (gtk_application_window_new(app));
 
   gtk_window_set_title(GTK_WINDOW(window), "Candy-Clone");
@@ -31,7 +34,7 @@ void make_window(GtkApplication* app) {
   gtk_window_set_default_size(GTK_WINDOW(window), 500, 500);
 }
 
-void fill_window(GtkApplication *app) {
+void GameWindow::fill_window(GtkApplication *app) {
   char remaining_moves[256];
   char score[256];
   int candy_color, row, col;
@@ -85,13 +88,13 @@ void fill_window(GtkApplication *app) {
 
 }
 
-void refresh_window(GtkApplication* app) {
+void GameWindow::refresh_window(GtkApplication* app) {
   GtkWidget* window = gtk_application_get_active_window(app);
   gtk_widget_destroy(gtk_bin_get_child(window));
   fill_window(app);
 }
 
-static void open(GApplication *app, GFile **files, gint n_files, const gchar *hint) {
+extern "C" static void open(GApplication *app, GFile **files, gint n_files, const gchar *hint) {
   // initialize game board
   GameModel gameboard = GameModel(g_file_get_path(files[0]));
 
@@ -99,6 +102,7 @@ static void open(GApplication *app, GFile **files, gint n_files, const gchar *hi
   fill_window(app);
 }
 
+// MAIN
 int main(int argc, char **argv) {
   int status;
 
@@ -107,7 +111,8 @@ int main(int argc, char **argv) {
   status = g_application_run(G_APPLICATION(app), argc, argv);
 
   g_object_unref(app);
-  DestroyBoard(gameboard);
+  // DestroyBoard(gameboard);
+  // TODO: replace with game_model destructor
 
   return status;
 }
