@@ -637,11 +637,7 @@ bool GameModel::ScanSequence(const int size, vector<int> candy_seq) {
 
 // Frees old candy, creates a new candy, adds to gameboard array
 void GameModel::SetCandy(const int &idx, const int &color, const int &type) {
-  //don't free candy if idx contains EMPTY_CANDY
-  Array_t candy_address = GetElement(this->game_board_, idx);
-  if (candy_address != &EMPTY_CANDY) {
     FreeCandy(idx);
-  }
 
   CandyPtr candy = (CandyPtr)malloc(sizeof(Candy));
   candy->color = color;
@@ -658,8 +654,13 @@ void GameModel::SetCandy(const int &dest_idx, const int &source_idx) {
 
 // Free Candy struct
 bool GameModel::FreeCandy(const int &idx) {
-  Array_t old_candy = (Array_t) game_board_->data[idx];
-  free(old_candy);
+  //don't free candy if idx contains EMPTY_CANDY
+  Array_t candy_address = GetElement(this->game_board_, idx);
+
+  if (candy_address != &EMPTY_CANDY) {
+    Array_t old_candy = (Array_t) game_board_->data[idx];
+    free(old_candy);
+  }
   return true;
 }
 
