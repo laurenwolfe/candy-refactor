@@ -368,7 +368,7 @@ int GameModel::DeserializeGameState(json_t* game_instance) {
   }
 
   cout << "Deserializing GameState" <<endl;
-  json_unpack(json_gamestate, "{s:o, s:o, s:i, s:i, s:a}", "boardcandies", &json_boardcandies, "boardstate", &json_boardstate, "movesmade", &movesmade, "currentscore", &currentscore, "extensionoffset", &json_extensionoffset);
+  json_unpack(json_gamestate, "{s:o, s:o, s:i, s:i, s:o}", "boardcandies", &json_boardcandies, "boardstate", &json_boardstate, "movesmade", &movesmade, "currentscore", &currentscore, "extensionoffset", &json_extensionoffset);
 
   boardstate = DeserializeArray2D(json_boardstate, DeserializeIntFunction);
   boardcandies = DeserializeArray2D(json_boardcandies, DeserializeCandyFunction);
@@ -378,15 +378,16 @@ int GameModel::DeserializeGameState(json_t* game_instance) {
   // create the extension offset
   size_t idx;
   json_t* value;
-  vector<int> extensionoffset;
-  extensionoffset.reserve(GetNumCols(boardstate));
+  int jint;
+  vector<int> extensionoffset (GetNumCols(this->original_fired_state_), 0);
   cout << "< ";
   json_array_foreach(json_extensionoffset, idx, value) {
     // add int val from  json_extension_offset
-    extensionoffset.push_back((int)(json_number_value(value)));
+    json_unpack(value, "i", &jint);
+    extensionoffset[idx] = jint;
     cout << to_string(extensionoffset[idx]) + " ";
   }
-  cout << "\n";
+  cout << ">\n";
 
   // assign values obtained from json file to this game object
   this->game_board_ = boardcandies;
@@ -798,14 +799,15 @@ void DeserializeIntFunction(Array2D array, Json_ptr data) {
 void DeserializeCandyFunction(Array2D array, Json_ptr data) {
   Json_ptr value;
   size_t index;
-  int el_value;
+  int jcolor;
+  int jtype;
 
   //Unpack array of Candies from JSON object into the Array2D
   json_array_foreach(data, index, value) {
     CandyPtr candy = (CandyPtr)calloc(1, sizeof(Candy));
-    json_unpack(value, "i", &el_value);
-    candy->color = el_value;
-    candy->type = 0;
+    json_unpack(value, "{s:i, s:i}", "color", &jcolor, "type", &jtype);
+    candy->color = jcolor;
+    candy->type = jtype;
     array->data[index] = (Json_ptr)(candy);
     printf("read Candy: [c:%d,t:%d]\n", candy->color, candy->type);
   }

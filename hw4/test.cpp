@@ -5,20 +5,35 @@ using namespace std;
 
 int main(int argc, char **argv) {
 
-    GameModel b = GameModel("gameExample.json");
+    GameModel b = GameModel("test25by5.json");
 
     cout << "Moves remaining: " << b.GetMovesRemaining() << endl;
     cout << "Score: " << b.GetScore() << endl;
     b.PrintBoard();
 
-    b.SetSelectedCandy(0);
-    if(b.SwapCandy('E')) {
-        cout << "Success!" << endl;
+    b.SetSelectedCandy(12);
+    cout << "Selected:" + to_string(b.GetCandyColor(12));
+    cout << " at: (row:" + to_string(b.ConvertToRow(12));
+    cout << ",col:" + to_string(b.ConvertToRow(12)) + ")\n";
+    if(b.SwapCandy('W')) {
+        cout << "W Success!" << endl;
         b.PrintBoard();
         cout << "Moves remaining: " << b.GetMovesRemaining() << endl;
         cout << "Score: " << b.GetScore() << endl;
     } else {
-        cout << "fail!" << endl;
+        cout << "W fail!" << endl;
+    }
+    b.SetSelectedCandy(18);
+    cout << "Selected:" + to_string(b.GetCandyColor(18));
+    cout << " at: (row:" + to_string(b.ConvertToRow(18));
+    cout << ",col:" + to_string(b.ConvertToRow(18)) + ")\n";
+    if(b.SwapCandy('S')) {
+      cout << "S Success!" << endl;
+      b.PrintBoard();
+      cout << "Moves remaining: " << b.GetMovesRemaining() << endl;
+      cout << "Score: " << b.GetScore() << endl;
+    } else {
+      cout << "S fail!" << endl;
     }
 
 
