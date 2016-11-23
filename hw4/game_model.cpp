@@ -345,6 +345,7 @@ bool GameModel::CreateGameboard() {
     return true;
 }
 
+
 CandyPtr GameModel::MakeCandy(const int &color, const int &type) {
     CandyPtr candy_ptr = (CandyPtr)malloc(sizeof(Candy));
     if(candy_ptr == nullptr) {
@@ -380,14 +381,15 @@ void DeserializeIntFunction(Array2D array, Json_ptr data) {
 void DeserializeCandyFunction(Array2D array, Json_ptr data) {
     Json_ptr value;
     size_t index;
-    int jcolor;
-    int jtype;
+    int jcolor, jtype;
 
     //Unpack array of Candies from JSON object into the Array2D
     json_array_foreach(data, index, value) {
         json_unpack(value, "{s:i, s:i}", "color", &jcolor, "type", &jtype);
-        MakeCandy(jcolor, jtype);
 
+        CandyPtr candy = (CandyPtr)malloc(sizeof(Candy));
+        candy->color = jcolor;
+        candy->type = jtype;
         array->data[index] = (Json_ptr)(candy);
     }
     json_array_clear(data);
@@ -503,7 +505,6 @@ void GameModel::SetCandy(const int &idx, const int &color, const int &type) {
     FreeCandy(idx);
 
     CandyPtr candy = MakeCandy(color, type);
-
     game_board_->data[idx] = (Array_t)(candy);
 }
 

@@ -42,10 +42,11 @@ class GameModel {
         void SerializeGame(const string &filepath);
         void FreeArrays();
 
-    // UTILITIES
-    int ConvertToRow(const int &idx) const;
-    int ConvertToCol(const int &idx) const;
-    int ConvertToIdx(const int &row, const int &col) const;
+        // --- Conversion Methods ---
+        CandyPtr MakeCandy(const int &color, const int &type);
+        int ConvertToRow(const int &idx) const;
+        int ConvertToCol(const int &idx) const;
+        int ConvertToIdx(const int &row, const int &col) const;
 
     private:
         // --- Deserialize Methods ---
@@ -54,7 +55,6 @@ class GameModel {
         bool DeserializeGameState(json_t* &game_instance);
         Array2D DeserializeArray2D(json_t* &serialized_array2d, ElDeserializeFnPtr deserialize_function);
         bool CreateGameboard();
-        CandyPtr MakeCandy(const int &color, const int &type);
         long CalcMaxScore(Array2D score_board);
 
         // --- Serialize Methods ---
