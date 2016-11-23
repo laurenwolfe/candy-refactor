@@ -33,7 +33,7 @@ GameModel::GameModel() {
   original_fired_state_ = AllocateArray2D();
   Deserialize(original_fired_state_, file3, &DeserializeIntFunction);
 
-  for(int i = 0; i < game_board_->num_cols; i++) {
+  for (int i = 0; i < game_board_->num_cols; i++) {
     extension_offset_.push_back(0);
   }
 
@@ -47,7 +47,7 @@ GameModel::GameModel() {
 // Constructs a GameModel instance by deserializing game data file
 GameModel::GameModel(const string &filepath) {
   const char* c_filepath = filepath.c_str();
-  if(DeserializeGameInstance(c_filepath)){
+  if (DeserializeGameInstance(c_filepath)) {
     // Deserialization was successsful
   } else {
     // an error occured
@@ -66,7 +66,7 @@ int GameModel::GetMovesRemaining() const {
 int GameModel::GetMaxScore() const {
   int max_score = 0;
 
-  for(int i = 0; i < GetBoardSize(); i++) {
+  for (int i = 0; i < GetBoardSize(); i++) {
     max_score += (long)this->original_fired_state_->data[i];
   }
 
@@ -81,7 +81,7 @@ int GameModel::GetSelectedCandyIdx() const {
 // Returns int representing candy's color
 int GameModel::GetCandyColor(const int &idx) const {
   CandyPtr candy;
-  candy = (CandyPtr) game_board_->data[idx];
+  candy = (CandyPtr)game_board_->data[idx];
   return candy->color;
 }
 
@@ -121,10 +121,10 @@ int GameModel::ConvertToIdx(const int &row, const int &col) const {
 void GameModel::PrintBoard() {
   int idx = GetBoardSize() - 1;
   cout << "Current board state:" << endl;
-  for(int i = GetRowLength(); i > 0; i--) {
-    for(int j = GetColLength(); j > 0; j--) {
+  for (int i = GetRowLength(); i > 0; i--) {
+    for (int j = GetColLength(); j > 0; j--) {
       int color = GetCandyColor(idx);
-      if(color == -1) {
+      if (color == -1) {
         cout << "  ";
       } else {
         cout << color << " ";
@@ -139,9 +139,9 @@ void GameModel::PrintBoard() {
 // Returns true if all squares have been fully fired or
 // if no moves remain, false otherwise
 bool GameModel::IsGameOver() {
-  if(score_ == max_score_) {
+  if (score_ == max_score_) {
     return true;
-  } else if(GetMovesRemaining() == 0) {
+  } else if (GetMovesRemaining() == 0) {
     return true;
   } else {
     return false;
@@ -157,7 +157,7 @@ void GameModel::SetSelectedCandy(int idx) {
 bool GameModel::SwapCandy(const char &dir) {
   int row2, col2, idx2, settle_ctr;
 
-  if(GetSelectedCandyIdx() == NO_CANDY || IsGameOver()) {
+  if (GetSelectedCandyIdx() == NO_CANDY || IsGameOver()) {
     return false;
   }
 
@@ -166,20 +166,20 @@ bool GameModel::SwapCandy(const char &dir) {
   col2 = ConvertToCol(sel_candy_idx_);
 
   // alter row/column values for square to swap into based on move direction
-  if(dir == 'N') {
+  if (dir == 'N') {
     row2++;
-  } else if(dir == 'S') {
+  } else if (dir == 'S') {
     row2--;
-  } else if(dir == 'E') {
+  } else if (dir == 'E') {
     col2--;
-  } else if(dir == 'W') {
+  } else if (dir == 'W') {
     col2++;
   } else {
     return false;
   }
 
   // if the more direction is invalid (goes off the board), return false
-  if(col2 < 0 || row2 < 0 || row2 >= GetRowLength() || col2 >= GetColLength()) {
+  if (col2 < 0 || row2 < 0 || row2 >= GetRowLength() || col2 >= GetColLength()) {
     return false;
   }
 
@@ -190,13 +190,13 @@ bool GameModel::SwapCandy(const char &dir) {
 
   // Swaps the candies and verifies that a match is made by doing so.
   // If invalid swap, re-swaps the candies and returns false.
-  if(TrySwap(sel_candy_idx_, idx2)) {
+  if (TrySwap(sel_candy_idx_, idx2)) {
     moves_made_++;
     // Loop fires templates in order of priority,
     // applies gravity, fills empty slots, and checks for
     // new matches. Executes until board settles or loop has executed
     // a maximum number of times.
-    while(settle_ctr < MAX_SETTLE && FireBoardLoop()) {
+    while (settle_ctr < MAX_SETTLE && FireBoardLoop()) {
       cout << "Post Fire: " << endl;
       PrintBoard();
 
@@ -222,7 +222,7 @@ bool GameModel::SwapCandy(const char &dir) {
 
 // PRIVATE METHODS ============================================================
 
-bool GameModel::DeserializeGameInstance(const char* &filepath){
+bool GameModel::DeserializeGameInstance(const char* &filepath) {
   json_t *json_gameinstance;
   json_error_t error;
   bool return_success;
@@ -235,7 +235,7 @@ bool GameModel::DeserializeGameInstance(const char* &filepath){
   }
 
   return_success = DeserializeGameDef(json_gameinstance);
-  if(!return_success){ return false; } // some error occured 
+  if (!return_success) { return false; } // some error occured 
   return_int = DeserializeGameState(json_gameinstance);
   if (return_int == 0) { // Gamestate was not present
 
@@ -244,7 +244,7 @@ bool GameModel::DeserializeGameInstance(const char* &filepath){
 
     //initialize fired state
     this->fired_state_ = AllocateArray2D();
-    if(this->fired_state_ == NULL){ return false; } //out of memory
+    if (this->fired_state_ == NULL) { return false; } //out of memory
     // set fired_state to equal the contents of initial_fired_state
     *(this->fired_state_) = *(this->original_fired_state_);
     // allocate mem for fired_state->data and copy contents of
@@ -257,14 +257,14 @@ bool GameModel::DeserializeGameInstance(const char* &filepath){
     this->score_ = 0;
 
     //zero initialize extensionoffset
-    vector<int> extensionoffset ( GetNumCols(this->original_fired_state_), 0);
+    vector<int> extensionoffset(GetNumCols(this->original_fired_state_), 0);
     this->extension_offset_ = extensionoffset;
     cout << "extension offset: < ";
     for (size_t i = 0; i < extension_offset_.size(); i++) {
       //extensionoffset.push_back(0);
       cout << to_string(extension_offset_.at(i)) + " ";
     }
-    cout << ">" <<endl;
+    cout << ">" << endl;
 
     //for (auto itr = extension_offset_.begin(); itr != extension_offset_.end(); itr++) {
     //  *itr = 0;
@@ -275,7 +275,7 @@ bool GameModel::DeserializeGameInstance(const char* &filepath){
     //call settle on board to populate game_board
     FillFromExtensionBoard();
 
-  } else if (return_int == 1) { 
+  } else if (return_int == 1) {
     // Gamestate was present
     // game should be fully initialized
     // perform any matinance if needed
@@ -293,7 +293,7 @@ Array2D GameModel::MakeEmptyGameBoard(int num_rows, int num_cols) {
   //initialize gameboard
   Array2D new_board;
   new_board = AllocateArray2D();
-  if(new_board == NULL){ return nullptr; } //out of memory
+  if (new_board == NULL) { return nullptr; } //out of memory
 
   // initialize gameboard
   new_board->num_cols = num_cols;
@@ -307,7 +307,7 @@ Array2D GameModel::MakeEmptyGameBoard(int num_rows, int num_cols) {
   return new_board;
 }
 
-bool GameModel::DeserializeGameDef(json_t* game_instance){
+bool GameModel::DeserializeGameDef(json_t* game_instance) {
   json_t* json_gamedef;
   int gameid, movesallowed, colors;
   json_t *json_extensioncolor, *json_boardstate;
@@ -323,8 +323,8 @@ bool GameModel::DeserializeGameDef(json_t* game_instance){
 
   extensioncolor = DeserializeArray2D(json_extensioncolor, DeserializeIntFunction);
   boardstate = DeserializeArray2D(json_boardstate, DeserializeIntFunction);
-  if(extensioncolor == nullptr){ return false; } // out of memory
-  if(boardstate == nullptr){ return false; } // out of memory
+  if (extensioncolor == nullptr) { return false; } // out of memory
+  if (boardstate == nullptr) { return false; } // out of memory
 
   // assign values obtained from json file to this game object
   this->game_id_ = gameid;
@@ -334,17 +334,17 @@ bool GameModel::DeserializeGameDef(json_t* game_instance){
   this->num_colors_ = colors;
   this->max_score_ = CalcMaxScore(boardstate);
 
-  cout << "\nGameDef read ----------" <<endl;
-  cout << "gameid:" + to_string(this->game_id_) <<endl;
-  cout << "total moves: " + to_string(this->total_moves_) <<endl;
-  cout << "num_colors: " + to_string(this->num_colors_) <<endl;
-  cout << "max score: " + to_string(this->max_score_) <<endl;
+  cout << "\nGameDef read ----------" << endl;
+  cout << "gameid:" + to_string(this->game_id_) << endl;
+  cout << "total moves: " + to_string(this->total_moves_) << endl;
+  cout << "num_colors: " + to_string(this->num_colors_) << endl;
+  cout << "max score: " + to_string(this->max_score_) << endl;
 
   return true;
 }
 
 // subroutine used to calculate the max score before the came has been initialized
-long GameModel::CalcMaxScore(Array2D score_board){
+long GameModel::CalcMaxScore(Array2D score_board) {
   long max_score = 0;
   for (int i = 0; i < GetSize(score_board); i++) {
     max_score += (long)GetElement(score_board, i);
@@ -367,19 +367,19 @@ int GameModel::DeserializeGameState(json_t* game_instance) {
     return 0;
   }
 
-  cout << "Deserializing GameState" <<endl;
+  cout << "Deserializing GameState" << endl;
   json_unpack(json_gamestate, "{s:o, s:o, s:i, s:i, s:o}", "boardcandies", &json_boardcandies, "boardstate", &json_boardstate, "movesmade", &movesmade, "currentscore", &currentscore, "extensionoffset", &json_extensionoffset);
 
   boardstate = DeserializeArray2D(json_boardstate, DeserializeIntFunction);
   boardcandies = DeserializeArray2D(json_boardcandies, DeserializeCandyFunction);
-  if(boardstate == nullptr){return -1;} //out of memory
-  if(boardcandies == nullptr){return -1;} //out of memory
+  if (boardstate == nullptr) { return -1; } //out of memory
+  if (boardcandies == nullptr) { return -1; } //out of memory
 
   // create the extension offset
   size_t idx;
   json_t* value;
   int jint;
-  vector<int> extensionoffset (GetNumCols(this->original_fired_state_), 0);
+  vector<int> extensionoffset(GetNumCols(this->original_fired_state_), 0);
   cout << "< ";
   json_array_foreach(json_extensionoffset, idx, value) {
     // add int val from  json_extension_offset
@@ -396,18 +396,18 @@ int GameModel::DeserializeGameState(json_t* game_instance) {
   this->score_ = currentscore;
   this->extension_offset_ = extensionoffset;
 
-  cout << "\nGamestate read ----------" <<endl;
-  cout << "moves made:" + to_string(this->moves_made_) <<endl;
-  cout << "score: " + to_string(this->score_) <<endl;
+  cout << "\nGamestate read ----------" << endl;
+  cout << "moves made:" + to_string(this->moves_made_) << endl;
+  cout << "score: " + to_string(this->score_) << endl;
   cout << "extension offset: < ";
   for (auto i = extensionoffset.begin(); i != extensionoffset.end(); i++)
     std::cout << *i << ' ';
-  cout << ">" <<endl;
+  cout << ">" << endl;
 
   return 1;
 }
 
-Array2D GameModel::DeserializeArray2D(json_t* serialized_array2d, ElDeserializeFnPtr deserialize_function){
+Array2D GameModel::DeserializeArray2D(json_t* serialized_array2d, ElDeserializeFnPtr deserialize_function) {
   Array2D array_field;
   json_t* data;
   int rows, cols;
@@ -430,11 +430,11 @@ Array2D GameModel::DeserializeArray2D(json_t* serialized_array2d, ElDeserializeF
   array_field->data = (Array_t*)malloc(sizeof(Array_t) * (array_field->size));
   if (array_field == NULL) { return nullptr; } // out of memory
 
-  cout << "\nCreating Array2D ----------" <<endl;
-  cout << "rows: " + to_string(array_field->num_rows) <<endl;
-  cout << "cols: " + to_string(array_field->num_cols) <<endl;
-  cout << "size: " + to_string(array_field->size) <<endl;
-  cout << "data..." <<endl;
+  cout << "\nCreating Array2D ----------" << endl;
+  cout << "rows: " + to_string(array_field->num_rows) << endl;
+  cout << "cols: " + to_string(array_field->num_cols) << endl;
+  cout << "size: " + to_string(array_field->size) << endl;
+  cout << "data..." << endl;
 
   // Use client-provided function to insert data into array
   deserialize_fn(array_field, data);
@@ -446,7 +446,7 @@ void GameModel::SerializeGame(const string &filepath) {
   const char* c_filepath = filepath.c_str();
   bool result;
   result = SerializeGameInstance(c_filepath);
-  if(!result){ // something failed
+  if (!result) { // something failed
     cout << "Encountered an error while trying to serialize game instance." << endl;
   }
 }
@@ -471,7 +471,7 @@ bool GameModel::SerializeGameInstance(const char* &filepath) {
   return true;
 }
 
-json_t* GameModel::SerializeGameDef(void){
+json_t* GameModel::SerializeGameDef(void) {
   json_t* json_gamedef = json_object();
 
   // serialize gameid
@@ -496,7 +496,7 @@ json_t* GameModel::SerializeGameDef(void){
   return json_gamedef;
 }
 
-json_t* GameModel::SerializeGameState(void){
+json_t* GameModel::SerializeGameState(void) {
   json_t* json_gamedef = json_object();
 
   // serialize boardcandies
@@ -551,7 +551,7 @@ bool GameModel::TrySwap(const int &idx1, const int &idx2) {
 
   matched = HasVerticalMatch(idx1) || HasVerticalMatch(idx2) ||
     HasHorizontalMatch(idx1) || HasHorizontalMatch(idx2);
-  if(!matched) {
+  if (!matched) {
     Swap(game_board_, idx1, idx2);
   }
   return matched;
@@ -565,7 +565,7 @@ bool GameModel::HasVerticalMatch(const int &idx) {
   //min/max difference for index
   const int interval = GetRowLength() * (MIN_MATCH_LENGTH - 1);
 
-  if(GetColLength() >= MIN_MATCH_LENGTH) {
+  if (GetColLength() >= MIN_MATCH_LENGTH) {
     //for every valid candy index within interval,
     //add candy color to vector
     for (int i = idx - interval; i <= (idx + interval); i = i + GetRowLength()) {
@@ -587,7 +587,7 @@ bool GameModel::HasHorizontalMatch(const int &idx) {
   size = 0;
   vector<int> candy_seq;
 
-  if(GetRowLength() >= MIN_MATCH_LENGTH) {
+  if (GetRowLength() >= MIN_MATCH_LENGTH) {
     // Get maximum index (+1) possible for matching
     // by taking minimum of max row index and max match index
     max_row_idx = idx + GetRowLength() - idx % GetRowLength();
@@ -614,14 +614,14 @@ bool GameModel::ScanSequence(const int size, vector<int> candy_seq) {
   int seq_count = 0;
   int color = -2;
 
-  for(int i = 0; i < size; i++) {
+  for (int i = 0; i < size; i++) {
     //Found sequence!
-    if(seq_count == MIN_MATCH_LENGTH) {
+    if (seq_count == MIN_MATCH_LENGTH) {
       return true;
     }
 
     //If current candy continues sequence, increment, otherwise reset
-    if(candy_seq[i] == color) {
+    if (candy_seq[i] == color) {
       seq_count++;
     } else {
       color = candy_seq[i];
@@ -629,7 +629,7 @@ bool GameModel::ScanSequence(const int size, vector<int> candy_seq) {
     }
   }
   //check for last element satisfy minimum match length
-  if(seq_count == MIN_MATCH_LENGTH) {
+  if (seq_count == MIN_MATCH_LENGTH) {
     return true;
   }
   return false;
@@ -637,7 +637,7 @@ bool GameModel::ScanSequence(const int size, vector<int> candy_seq) {
 
 // Frees old candy, creates a new candy, adds to gameboard array
 void GameModel::SetCandy(const int &idx, const int &color, const int &type) {
-    FreeCandy(idx);
+  FreeCandy(idx);
 
   CandyPtr candy = (CandyPtr)malloc(sizeof(Candy));
   candy->color = color;
@@ -658,7 +658,7 @@ bool GameModel::FreeCandy(const int &idx) {
   Array_t candy_address = GetElement(this->game_board_, idx);
 
   if (candy_address != &EMPTY_CANDY) {
-    Array_t old_candy = (Array_t) game_board_->data[idx];
+    Array_t old_candy = (Array_t)game_board_->data[idx];
     free(old_candy);
   }
   return true;
@@ -682,7 +682,7 @@ bool GameModel::FindAndFireTemplates(const int &num, const bool &isVertical) {
 
   // Set the direction and increment interval for each index,
   // allowing the function to be used for vertical or horizontal moves
-  if(isVertical) {
+  if (isVertical) {
     length = GetColLength();
     width = GetRowLength();
     increment = GetRowLength();
@@ -695,17 +695,17 @@ bool GameModel::FindAndFireTemplates(const int &num, const bool &isVertical) {
   idx = 0;
   fired = false;
 
-  for(int i = 0; i < length; i++) {
+  for (int i = 0; i < length; i++) {
     seq_count = 0;
     color = -2;
-    for(int j = 0; j < width; j++) {
-      if(GetCandyColor(idx) == NO_CANDY) {
+    for (int j = 0; j < width; j++) {
+      if (GetCandyColor(idx) == NO_CANDY) {
         color = -2;
         seq_count = 0;
-      } else if(GetCandyColor(idx) == color) {
+      } else if (GetCandyColor(idx) == color) {
         seq_count++;
 
-        if(seq_count == num) {
+        if (seq_count == num) {
           fired = FireTemplate(idx, num, increment);
           color = -2;
           seq_count = 0;
@@ -716,7 +716,7 @@ bool GameModel::FindAndFireTemplates(const int &num, const bool &isVertical) {
       }
       idx = (idx + increment) % (GetBoardSize() - 1);
     }
-    if(seq_count == num) {
+    if (seq_count == num) {
       fired = FireTemplate(idx, num, increment);
     }
   }
@@ -728,7 +728,7 @@ bool GameModel::FindAndFireTemplates(const int &num, const bool &isVertical) {
 // color values as fired
 bool GameModel::FireTemplate(int idx, const int &num, const int &increment) {
 
-  for(int seq_len = 0; seq_len < num; seq_len++) {
+  for (int seq_len = 0; seq_len < num; seq_len++) {
     SetCandy(idx, NO_CANDY, DEFAULT_CANDY_TYPE);
     AdjustScore(idx);
     idx -= increment;
@@ -741,7 +741,7 @@ bool GameModel::FireTemplate(int idx, const int &num, const int &increment) {
 void GameModel::AdjustScore(const int &idx) {
   long firings_left = (long)(fired_state_->data[idx]);
 
-  if(firings_left > 0) {
+  if (firings_left > 0) {
     firings_left--;
     fired_state_->data[idx] = (Array_t)firings_left;
     score_++;
@@ -751,10 +751,10 @@ void GameModel::AdjustScore(const int &idx) {
 // Drop candies from higher indices to fill empty squares (vertically)
 void GameModel::ApplyGravity() {
   int src_idx;
-  for(int dest_idx = 0; dest_idx < GetBoardSize() - GetRowLength(); dest_idx++) {
+  for (int dest_idx = 0; dest_idx < GetBoardSize() - GetRowLength(); dest_idx++) {
     src_idx = dest_idx + GetRowLength();
     while (GetCandyColor(dest_idx) == NO_CANDY && src_idx < GetBoardSize()) {
-      if(GetCandyColor(src_idx) != NO_CANDY) {
+      if (GetCandyColor(src_idx) != NO_CANDY) {
         SetCandy(dest_idx, src_idx);
         SetCandy(src_idx, NO_CANDY, DEFAULT_CANDY_TYPE);
       } else {
@@ -769,8 +769,8 @@ void GameModel::ApplyGravity() {
 void GameModel::FillFromExtensionBoard() {
   cout << "Attempting to Fill" << endl;
 
-  for(int idx = 0; idx < GetBoardSize(); idx++) {
-    if(GetCandyColor(idx) == NO_CANDY) {
+  for (int idx = 0; idx < GetBoardSize(); idx++) {
+    if (GetCandyColor(idx) == NO_CANDY) {
       int extension_col = ConvertToCol(idx);
       int extension_row =
         extension_offset_.at(extension_col) % extension_board_->num_rows;
@@ -815,7 +815,7 @@ void DeserializeCandyFunction(Array2D array, Json_ptr data) {
   json_array_clear(data);
 }
 
-json_t* SerializeCandyFunction(Array2D array){
+json_t* SerializeCandyFunction(Array2D array) {
   json_t* json_arr = json_array();
   for (int i = 0; i < array->size; i++) {
     json_t* json_candy = json_object();
