@@ -1,4 +1,4 @@
-SRC=game_model.cpp test.cpp game_window.c 
+SRC=game_model.cpp test.cpp game_window.cc 
 HEADERS=game_model.h game_window.h
 LIBS=../hw2/libhw2.a
 CFLAGS = -Wall -Wpedantic -std=c++11
