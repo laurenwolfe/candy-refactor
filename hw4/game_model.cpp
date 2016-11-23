@@ -12,9 +12,9 @@ extern "C" void DeserializeFunction2(Array2D, Json_ptr);
 
 // Empty Constructor is for testing purposes
 GameModel::GameModel() {
-    char *file1 = (char *)"test1.json";
-    char *file2 = (char *)"test2.json";
-    char *file3 = (char *)"test3.json";
+    char *file1 = (char *)"exten_test.json";
+    char *file2 = (char *)"game.json";
+    char *file3 = (char *)"firing.json";
 
     extension_board_ = AllocateArray2D();
     Deserialize(extension_board_, file1, &DeserializeFunction);
@@ -29,11 +29,11 @@ GameModel::GameModel() {
     Deserialize(original_fired_state_, file3, &DeserializeFunction);
 
     for(int i = 0; i < game_board_->num_cols; i++) {
-        extension_offset_.push_back(0);
+        extension_offset_.push_back(5);
     }
 
-    game_id_ = 12345;
-    total_moves_ = 20;
+    game_id_ = 162614788;
+    total_moves_ = 25;
     moves_made_ = 0;
     num_colors_ = 6;
     max_score_ = GetMaxScore();
@@ -367,6 +367,7 @@ bool GameModel::FindAndFireTemplates(const int &num, const bool &isVertical) {
         seq_count = 0;
         color = -2;
         for(int j = 0; j < width; j++) {
+            cout << "Index: " << idx << " ";
             if(GetCandyColor(idx) == NO_CANDY) {
                 color = -2;
                 seq_count = 0;
@@ -382,13 +383,17 @@ bool GameModel::FindAndFireTemplates(const int &num, const bool &isVertical) {
                 color = GetCandyColor(idx);
                 seq_count = 1;
             }
-            idx = (idx + increment) % (GetBoardSize() - 1);
+            if(idx + increment >= GetBoardSize()) {
+                idx = (idx + increment + 1) % (GetBoardSize());
+            } else {
+                idx = idx + increment;
+            }
         }
         if(seq_count == num) {
             fired = FireTemplate(idx, num, increment);
         }
+        cout << endl;
     }
-
     return fired;
 }
 

@@ -6,12 +6,8 @@ using namespace std;
 int main(int argc, char **argv) {
     GameModel b;
 
-    cout << "Moves remaining: " << b.GetMovesRemaining() << endl;
-    cout << "Score: " << b.GetScore() << endl;
-
-
-    b.SetSelectedCandy(7);
-    if(b.SwapCandy('E')) {
+    b.SetSelectedCandy(11);
+    if(b.SwapCandy('N')) {
         cout << "Success!" << endl;
         b.PrintBoard();
         cout << "Moves remaining: " << b.GetMovesRemaining() << endl;
