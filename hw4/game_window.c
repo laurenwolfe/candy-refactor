@@ -106,15 +106,16 @@ void refresh_window(GtkApplication* app) {
 
 static void open(GApplication *app, GFile **files, gint n_files, const gchar *hint) {
     // initialize game board
-    gameboard = CreateGameModel(g_file_get_path(files[0]));
+    if(files != NULL) {
+        gameboard = CreateGameModel(g_file_get_path(files[0]));
 
-    make_window(GTK_APPLICATION(app));
-    fill_window(GTK_APPLICATION(app));
+        make_window(GTK_APPLICATION(app));
+        fill_window(GTK_APPLICATION(app));
+    }
 }
 
 static void activate(GtkApplication *app, gpointer data) {
     printf("usage: ./hw4 path/to/file.json \n");
-    exit(0);
 }
 
 int main(int argc, char **argv) {

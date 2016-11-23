@@ -208,6 +208,11 @@ bool GameModel::DeserializeGameInstance(const char* &filepath){
             return false;
         *(fired_state_) = *(original_fired_state_);
         fired_state_->data = (Array_t *)calloc(fired_state_->size, sizeof(Array_t));
+
+        if(fired_state_->data == nullptr) {
+            return false;
+        }
+
         size_t num_bytes_of_data = (fired_state_->size * sizeof(Array_t));
         memcpy(fired_state_->data, original_fired_state_->data, num_bytes_of_data);
     }
@@ -264,8 +269,9 @@ bool GameModel::DeserializeGameState(json_t* &game_instance) {
 
     boardstate = DeserializeArray2D(json_boardstate, DeserializeIntFunction);
     boardcandies = DeserializeArray2D(json_boardcandies, DeserializeCandyFunction);
-    if(boardstate == nullptr){return -1;} //out of memory
-    if(boardcandies == nullptr){return -1;} //out of memory
+    if(boardstate == nullptr || boardcandies == nullptr){
+        return false;
+    } //out of memory
 
     // create the extension offset
     size_t idx;
@@ -298,7 +304,7 @@ Array2D GameModel::DeserializeArray2D(json_t* &serialized_array2d, ElDeserialize
 
     // allocate space for array2D on heap
     array_field = AllocateArray2D();
-    if (array_field == NULL) { return nullptr; } // out of memory
+    if (array_field == NULL) { return (Array2D)NULL; } // out of memory
 
     json_unpack(serialized_array2d, "{s:i, s:i, s:o}", "rows", &rows,
                 "columns", &cols, "data", &data);
@@ -309,19 +315,23 @@ Array2D GameModel::DeserializeArray2D(json_t* &serialized_array2d, ElDeserialize
     array_field->size = (cols * rows);
 
     array_field->data = (Array_t*)malloc(sizeof(Array_t) * (array_field->size));
-    if (array_field == NULL) { return nullptr; } // out of memory
+    if (array_field == NULL) { return (Array2D)NULL; } // out of memory
 
     // Use client-provided function to insert data into array
     deserialize_fn(array_field, data);
     return array_field;
 }
 
-void GameModel::CreateGameboard() {
+bool GameModel::CreateGameboard() {
     game_board_->num_rows = original_fired_state_->num_rows;
     game_board_->num_cols = original_fired_state_->num_cols;
     game_board_->size = game_board_->num_rows * game_board_->num_cols;
 
     game_board_->data = (Array_t*)malloc(sizeof(Array_t) * (game_board_->size));
+
+    if(game_board_->data == nullptr) {
+        return false;
+    }
 
     for(int i = 0; i < game_board_->size; i++) {
         CandyPtr candy_ptr = MakeCandy((long)extension_board_->data[i], DEFAULT_CANDY_TYPE);
@@ -331,10 +341,15 @@ void GameModel::CreateGameboard() {
     for(int i = 0; i < game_board_->num_cols; i++) {
         extension_offset_.push_back(game_board_->num_rows);
     }
+
+    return true;
 }
 
 CandyPtr GameModel::MakeCandy(const int &color, const int &type) {
     CandyPtr candy_ptr = (CandyPtr)malloc(sizeof(Candy));
+    if(candy_ptr == nullptr) {
+        return (CandyPtr)NULL;
+    }
     candy_ptr->color = color;
     candy_ptr->type = type;
     return candy_ptr;
@@ -370,10 +385,9 @@ void DeserializeCandyFunction(Array2D array, Json_ptr data) {
 
     //Unpack array of Candies from JSON object into the Array2D
     json_array_foreach(data, index, value) {
-        CandyPtr candy = (CandyPtr)malloc(sizeof(Candy));
         json_unpack(value, "{s:i, s:i}", "color", &jcolor, "type", &jtype);
-        candy->color = jcolor;
-        candy->type = jtype;
+        MakeCandy(jcolor, jtype);
+
         array->data[index] = (Json_ptr)(candy);
     }
     json_array_clear(data);
@@ -488,9 +502,8 @@ Json_ptr SerializeIntFunction(Array2D array) {
 void GameModel::SetCandy(const int &idx, const int &color, const int &type) {
     FreeCandy(idx);
 
-    CandyPtr candy = (CandyPtr)malloc(sizeof(Candy));
-    candy->color = color;
-    candy->type = type;
+    CandyPtr candy = MakeCandy(color, type);
+
     game_board_->data[idx] = (Array_t)(candy);
 }
 

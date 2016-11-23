@@ -53,7 +53,7 @@ class GameModel {
         bool DeserializeGameDef(json_t* &game_instance);
         bool DeserializeGameState(json_t* &game_instance);
         Array2D DeserializeArray2D(json_t* &serialized_array2d, ElDeserializeFnPtr deserialize_function);
-        void CreateGameboard();
+        bool CreateGameboard();
         CandyPtr MakeCandy(const int &color, const int &type);
         long CalcMaxScore(Array2D score_board);
 
