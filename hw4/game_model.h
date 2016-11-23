@@ -38,6 +38,7 @@ class GameModel {
         bool IsGameOver();
         void SetSelectedCandy(int idx);
         bool SwapCandy(const char &dir);
+        void SerializeGame(const string &filepath);
 
     // UTILITIES
     int ConvertToRow(const int &idx) const;
@@ -48,18 +49,17 @@ class GameModel {
         // --- Deserialize Methods ---
         bool DeserializeGameInstance(const char* &filepath);
         bool DeserializeGameDef(json_t* game_instance);
-        int DeserializeGameState(json_t* game_instance);
+        bool DeserializeGameState(json_t* game_instance);
         Array2D DeserializeArray2D(json_t* serialized_array2d, ElDeserializeFnPtr deserialize_function);
         void CreateGameboard();
         CandyPtr MakeCandy(int color, int type);
         long CalcMaxScore(Array2D score_board);
 
         // --- Serialize Methods ---
-        void SerializeGame(const string &filepath);
         bool SerializeGameInstance(const char* &filepath);
-        json_t* SerializeGameDef(void);
-        json_t* SerializeGameState(void);
-        json_t* SerializeArray2D(Array2D array, json_t *(*serialize_fn)(Array2D));
+        Json_ptr SerializeGameDef(void);
+        Json_ptr SerializeGameState(void);
+        Json_ptr SerializeArray2D(Array2D array, json_t *(*serialize_fn)(Array2D));
 
         // --- Mutators ---
         void SetCandy(const int &idx, const int &color, const int &type);
@@ -92,10 +92,11 @@ class GameModel {
         int sel_candy_idx_ = -1; //button-selected candy
         int game_id_;
         int total_moves_;
-        int moves_made_;
+        int moves_made_ = 0;
         int num_colors_; //number of colors for this game board
         int max_score_;
         int score_ = 0;
+
         const int NO_CANDY = -1;
         const int MIN_MATCH_LENGTH = 3;
         const int DEFAULT_CANDY_TYPE = 0;
