@@ -39,6 +39,11 @@ class GameModel {
         void SetSelectedCandy(int idx);
         bool SwapCandy(const char &dir);
 
+    // UTILITIES
+    int ConvertToRow(const int &idx) const;
+    int ConvertToCol(const int &idx) const;
+    int ConvertToIdx(const int &row, const int &col) const;
+
     private:
         // --- Deserialize Methods ---
         bool DeserializeGameInstance(const char* &filepath);
@@ -54,19 +59,23 @@ class GameModel {
         bool SerializeGameInstance(const char* &filepath);
         json_t* SerializeGameDef(void);
         json_t* SerializeGameState(void);
-        json_t* SerializeArray2D(Array2D array, ElSerializeFnPtr serialize_function);
+        json_t* SerializeArray2D(Array2D array, json_t *(*serialize_fn)(Array2D));
 
         // --- Mutators ---
         void SetCandy(const int &idx, const int &color, const int &type);
         void SetCandy(const int &dest_idx, const int &source_idx);
-        bool FreeCandy(const int &idx);
         bool TrySwap(const int &idx1, const int &idx2);
+
+        // --- Memory Management ---
+        bool FreeCandy(const int &idx);
+        void FreeModel();
 
         // ---Gameplay Methods ---
         bool HasVerticalMatch(const int &idx);
         bool HasHorizontalMatch(const int &idx);
         bool ScanSequence(const int size, vector<int> candy_seq);
 
+        void SettleBoard();
         bool FireBoardLoop();
         bool FindAndFireTemplates(const int &num, const bool &isVertical);
         bool FireTemplate(int idx, const int &num, const int &increment);
@@ -74,12 +83,6 @@ class GameModel {
         void FillFromExtensionBoard();
 
         void AdjustScore(const int &idx); //if fires remaining, inc score and dec fires
-
-        // UTILITIES
-        int ConvertToRow(const int &idx) const;
-        int ConvertToCol(const int &idx) const;
-        int ConvertToIdx(const int &row, const int &col) const;
-
 
         Array2D extension_board_; //extra candy to drop
         Array2D game_board_; //current visible board
@@ -98,5 +101,7 @@ class GameModel {
         const int DEFAULT_CANDY_TYPE = 0;
         const int MAX_SETTLE = 1000;
 };
+
+
 
 #endif // _GAME_MODEL_H_

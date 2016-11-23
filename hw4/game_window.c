@@ -9,14 +9,16 @@ TODO: Write class description
 // ------------------------------------------------------------
 static void d_button_callback(GtkWidget* widget, gpointer data) {
     char DIRECTION_CHARS[] = {'N', 'W', 'E', 'S'}; // remove this if it can be defined elsewhere
-    printf("%c\n", DIRECTION_CHARS[(int)data]);
-    boolean swapResult = SwapCandy(gameboard, DIRECTION_CHARS[(int)data]);
-    printf("swapRes: %d", swapResult);
+    char dir = DIRECTION_CHARS[(long)data];
+    printf("Direction: %c\n", dir);
+    gameboard->SwapCandy(dir);
     refresh_window(app);
 }
 
 static void c_button_callback(GtkWidget* widget, gpointer data) {
-    SetSelectedCandy(gameboard, (int)data);
+    int idx = (long)data;
+    printf("Set selected candy: %d\n", idx);
+    gameboard->SetSelectedCandy(idx);
 }
 
 // ------------------------------------------------------------
@@ -31,45 +33,56 @@ void make_window(GtkApplication* app) {
 }
 
 void fill_window(GtkApplication *app) {
-    char remaining_moves[256];
-    int candy, row, col, j;
+    char remaining_moves[256], points[256], game_over[256];
+    int idx;
 
-    sprintf(remaining_moves, "Moves left: %d", GetMoves(gameboard));
+    sprintf(remaining_moves, "Moves left: %d", gameboard->GetMovesRemaining());
+    sprintf(points, "Score: %d", gameboard->GetScore());
+
+    if(gameboard->GetScore() == gameboard->GetMaxScore()) {
+        sprintf(game_over, "You win!!");
+    } else {
+        sprintf(game_over, "You lose :(");
+    }
 
     // declare & initialize window components
-    GtkWidget* window = gtk_application_get_active_window(app);
+    GtkWindow* window = gtk_application_get_active_window(GTK_APPLICATION(app));
     GtkWidget* top_lvl_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     GtkWidget* candy_grid = gtk_grid_new();
     GtkWidget* interface_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     GtkWidget* move_counter = gtk_label_new(remaining_moves);
+    GtkWidget* score = gtk_label_new(points);
+    GtkWidget* over = gtk_label_new(game_over);
     GtkWidget* dpad_grid = gtk_grid_new();
 
     // assemble window components
     gtk_container_add(GTK_CONTAINER(window), top_lvl_container);
     gtk_box_pack_start(GTK_BOX(top_lvl_container), candy_grid, TRUE, TRUE, 0);
     gtk_box_pack_end(GTK_BOX(top_lvl_container), interface_container, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(interface_container), move_counter, FALSE, FALSE, 20);
+    if(!gameboard->IsGameOver()) {
+        gtk_box_pack_start(GTK_BOX(interface_container), move_counter, FALSE, FALSE, 20);
+        gtk_box_pack_start(GTK_BOX(interface_container), score, FALSE, FALSE, 20);
+    } else {
+        gtk_box_pack_start(GTK_BOX(interface_container), over, FALSE, FALSE, 20);
+        gtk_box_pack_start(GTK_BOX(interface_container), move_counter, FALSE, FALSE, 20);
+    }
     gtk_box_pack_start(GTK_BOX(interface_container), dpad_grid, FALSE, FALSE, 0);
 
-    j = GetBoardSize(gameboard);
+    idx = gameboard->GetBoardSize() - 1;
 
-    for(int i = 0; i < GetBoardSize(gameboard); i++) {
-        row = GetRow(gameboard, i);
-        col = GetCol(gameboard, i);
+    for(int i = 0; i < gameboard->GetRowLength(); i++) {
+        for(int j = 0; j < gameboard->GetColLength(); j++) {
+            int candy = gameboard->GetCandyColor(idx);
+            GtkWidget* currButton = gtk_toggle_button_new();
+            GtkWidget* currImage = gtk_image_new_from_file(candy_image_filenames[candy]);
+            gtk_button_set_image((GtkButton*)currButton, currImage);
+            gtk_grid_attach(GTK_GRID(candy_grid), currButton, j, i, 1, 1);
 
-        GetCandy(gameboard, j, &candy);
-
-        // create button, image and place in grid
-        GtkWidget* currButton;// = buttonArray[i];
-        currButton = gtk_toggle_button_new();
-        GtkWidget* currImage;// = imageArray[i];
-        currImage = gtk_image_new_from_file(candy_image_filenames[candy]);
-        gtk_button_set_image((GtkButton*)currButton, currImage);
-        gtk_grid_attach(GTK_GRID(candy_grid), currButton, col, row, 1, 1);
-
-        // add signal handler to button
-        g_signal_connect(currButton, "toggled", G_CALLBACK(c_button_callback), GINT_TO_POINTER(j));
-        j--;
+            // add signal handler to button
+            g_signal_connect(currButton, "toggled", G_CALLBACK(c_button_callback),
+                             GINT_TO_POINTER(idx));
+            idx--;
+        }
     }
 
     // create directional buttons
@@ -81,13 +94,13 @@ void fill_window(GtkApplication *app) {
         gtk_grid_attach(GTK_GRID(dpad_grid), currButton, (i % 3), (i / 3), 1, 1);
     }
 
-    gtk_widget_show_all(window);
+    gtk_widget_show_all(GTK_WIDGET(window));
 
 }
 
 void refresh_window(GtkApplication* app) {
-    GtkWidget* window = gtk_application_get_active_window(app);
-    gtk_widget_destroy(gtk_bin_get_child( window ));
+    GtkWindow* window = gtk_application_get_active_window(app);
+    gtk_widget_destroy(gtk_bin_get_child( GTK_BIN(window) ));
     fill_window(app);
 }
 
@@ -95,8 +108,8 @@ static void open(GApplication *app, GFile **files, gint n_files, const gchar *hi
     // initialize game board
     gameboard = CreateGameModel(g_file_get_path(files[0]));
 
-    make_window(app);
-    fill_window(app);
+    make_window(GTK_APPLICATION(app));
+    fill_window(GTK_APPLICATION(app));
 }
 
 int main(int argc, char **argv) {
@@ -107,7 +120,7 @@ int main(int argc, char **argv) {
     status = g_application_run(G_APPLICATION(app), argc, argv);
 
     g_object_unref(app);
-    FreeModel(gameboard);
+    if(gameboard != nullptr) FreeModel(gameboard);
 
     return status;
 }

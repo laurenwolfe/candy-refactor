@@ -118,13 +118,12 @@ void GameModel::SetSelectedCandy(int idx) {
 }
 
 bool GameModel::SwapCandy(const char &dir) {
-    int row2, col2, idx2, settle_ctr;
+    int row2, col2, idx2;
 
     if(GetSelectedCandyIdx() == NO_CANDY || IsGameOver()) {
         return false;
     }
 
-    settle_ctr = 0;
     row2 = ConvertToRow(sel_candy_idx_);
     col2 = ConvertToCol(sel_candy_idx_);
 
@@ -155,30 +154,16 @@ bool GameModel::SwapCandy(const char &dir) {
     // If invalid swap, re-swaps the candies and returns false.
     if(TrySwap(sel_candy_idx_, idx2)) {
         moves_made_++;
-        // Loop fires templates in order of priority,
-        // applies gravity, fills empty slots, and checks for
-        // new matches. Executes until board settles or loop has executed
-        // a maximum number of times.
-        while(settle_ctr < MAX_SETTLE && FireBoardLoop()) {
-            cout << "Post Fire: " << endl;
-            PrintBoard();
 
-            ApplyGravity();
-            cout << "Post Gravity: " << endl;
-            PrintBoard();
-
-            FillFromExtensionBoard();
-            cout << "Post Fill: " << endl;
-            PrintBoard();
-
-            settle_ctr++;
-        }
+        SettleBoard();
         // Reset selected candy
         SetSelectedCandy(NO_CANDY);
         return true;
     }
     return false;
 }
+
+
 
 /////////////////////////////////////////////////////////////
 /////////// PRIVATE METHODS
@@ -240,6 +225,8 @@ bool GameModel::DeserializeGameInstance(const char* &filepath){
         //TODO: signal error somehow
         return false;
     }
+
+    SettleBoard();
 
     return true;
 }
@@ -417,6 +404,10 @@ void GameModel::SerializeGame(const string &filepath) {
     if(!result){ // something failed
         cout << "Encountered an error while trying to serialize game instance." << endl;
     }
+
+    json_dump_file(json_str, filepath, 0);
+
+    json_decref(json_str);
 }
 
 // TODO: Include return false anywhere an error could occur
@@ -425,6 +416,10 @@ bool GameModel::SerializeGameInstance(const char* &filepath) {
 
     json_gamedef = SerializeGameDef();
     json_gamestate = SerializeGameState();
+
+
+    json_str = json_pack("{s:o, s:o}", "gamedef", json_gamedef, "gamestate", json_gamestate);
+
 
     json_gameinstance = json_object();
     json_object_set(json_gameinstance, "gamedef", json_gamedef);
@@ -470,7 +465,8 @@ json_t* GameModel::SerializeGameState(void){
     // serialize boardcandies
     json_t* json_boardcandies = SerializeArray2D(game_board_, SerializeCandyFunction);
     json_object_set(json_gamedef, "boardcandies", json_boardcandies);
-    json_decref(json_boardcandies); // may not want these decref statements if the json_gamedef doesn't increment objectref
+    // may not want these decref statements if the json_gamedef doesn't increment objectref
+    json_decref(json_boardcandies);
 
     // serialize boardstate
     json_t* json_boardstate = SerializeArray2D(fired_state_, SerializeIntFunction);
@@ -494,11 +490,8 @@ json_t* GameModel::SerializeGameState(void){
     return json_gamedef;
 }
 
-json_t* GameModel::SerializeArray2D(Array2D array, ElSerializeFnPtr serialize_function) {
+json_t* GameModel::SerializeArray2D(Array2D array, json_t *(*serialize_fn)(Array2D)) {
     json_t *json_data, *json_arr;
-    ElSerializeFnPtr serialize_fn;
-
-    serialize_fn = serialize_function;
     json_data = serialize_fn(array);
 
     json_arr = json_object();
@@ -550,19 +543,14 @@ void GameModel::SetCandy(const int &dest_idx, const int &source_idx) {
     SetCandy(dest_idx, new_color, DEFAULT_CANDY_TYPE);
 }
 
-// Free Candy struct
-bool GameModel::FreeCandy(const int &idx) {
-    Array_t old_candy = (Array_t) game_board_->data[idx];
-    free(old_candy);
-
-    return true;
-}
 
 // Swaps two candies and looks to see if swapping creates at
 // least one template, confirming that swap is valid.
 // Returns true if valid, false otherwise
 bool GameModel::TrySwap(const int &idx1, const int &idx2) {
     bool matched;
+
+    cout << "Swap " << idx1 << " and " << idx2 << endl;
 
     Swap(game_board_, idx1, idx2);
 
@@ -572,6 +560,22 @@ bool GameModel::TrySwap(const int &idx1, const int &idx2) {
         Swap(game_board_, idx1, idx2);
     }
     return matched;
+}
+
+/////////////////////////////////////////////////////////////
+// Memory Management Methods
+/////////////////////////////////////////////////////////////
+
+// Free Candy struct
+bool GameModel::FreeCandy(const int &idx) {
+    Array_t old_candy = (Array_t) game_board_->data[idx];
+    free(old_candy);
+
+    return true;
+}
+
+void GameModel::FreeModel() {
+
 }
 
 /////////////////////////////////////////////////////////////
@@ -590,12 +594,16 @@ bool GameModel::HasVerticalMatch(const int &idx) {
     if(GetColLength() >= MIN_MATCH_LENGTH) {
         //for every valid candy index within interval,
         //add candy color to vector
+        cout << "V Indexes to check: ";
         for (int i = idx - interval; i <= (idx + interval); i = i + GetRowLength()) {
-            if (i > 0 && i < GetBoardSize()) {
+            cout << i << " ";
+            if (i >= 0 && i < GetBoardSize()) {
                 candy_seq.push_back(GetCandyColor(i));
                 size++;
             }
         }
+
+        cout << endl;
 
         return ScanSequence(size, candy_seq);
     }
@@ -618,14 +626,16 @@ bool GameModel::HasHorizontalMatch(const int &idx) {
 
         //for every valid candy index above and below given index,
         //add candy color to vector
+        cout << "H Indexes to check: ";
         for (int i = idx - (MIN_MATCH_LENGTH - 1);
-                 i < idx + (MIN_MATCH_LENGTH - 1); i++) {
-            if (i > 0 && i < max_idx) {
+                 i < idx + MIN_MATCH_LENGTH; i++) {
+            cout << i << " ";
+            if (i >= 0 && i < max_idx) {
                 candy_seq.push_back(GetCandyColor(i));
                 size++;
             }
         }
-
+        cout << endl;
         return ScanSequence(size, candy_seq);
     }
     return false;
@@ -636,7 +646,9 @@ bool GameModel::ScanSequence(const int size, vector<int> candy_seq) {
     int seq_count = 0;
     int color = -2;
 
+    cout << "Check Sequence: ";
     for(int i = 0; i < size; i++) {
+        cout << candy_seq[i] << " ";
         //Found sequence!
         if(seq_count == MIN_MATCH_LENGTH) {
             return true;
@@ -650,11 +662,34 @@ bool GameModel::ScanSequence(const int size, vector<int> candy_seq) {
             seq_count = 1;
         }
     }
+    cout << endl;
     //check for last element satisfy minimum match length
     if(seq_count == MIN_MATCH_LENGTH) {
         return true;
     }
     return false;
+}
+
+// Loop fires templates in order of priority,
+// applies gravity, fills empty slots, and checks for
+// new matches. Executes until board settles or loop has executed
+// a maximum number of times.
+void GameModel::SettleBoard() {
+    int settle_ctr;
+
+    settle_ctr = 0;
+
+    while(settle_ctr < MAX_SETTLE && FireBoardLoop()) {
+        ApplyGravity();
+        cout << "Post Gravity: " << endl;
+        PrintBoard();
+
+        FillFromExtensionBoard();
+        cout << "Post Fill: " << endl;
+        PrintBoard();
+
+        settle_ctr++;
+    }
 }
 
 // Fire candy templates in order of priority: vFour, hFour, vThree, hThree.
@@ -692,7 +727,6 @@ bool GameModel::FindAndFireTemplates(const int &num, const bool &isVertical) {
         seq_count = 0;
         color = -2;
         for(int j = 0; j < width; j++) {
-            cout << "Index: " << idx << " ";
             if(GetCandyColor(idx) == NO_CANDY) {
                 color = -2;
                 seq_count = 0;
@@ -717,7 +751,6 @@ bool GameModel::FindAndFireTemplates(const int &num, const bool &isVertical) {
         if(seq_count == num) {
             fired = FireTemplate(idx, num, increment);
         }
-        cout << endl;
     }
     return fired;
 }
