@@ -16,19 +16,19 @@ GtkApplication* app;
 GameModel *gameboard;
 
 const char* dbutton_image_filenames[] = {
-        "images/direction/up.png",
-        "images/direction/left.png",
-        "images/direction/right.png",
-        "images/direction/down.png"
+        "img/up_arrow.png",
+        "img/left_arrow.png",
+        "img/right_arrow.png",
+        "img/down_arrow.png"
 };
 
 const char* candy_image_filenames[] = {
-        "images/40x40/blue.png",
-        "images/40x40/green.png",
-        "images/40x40/orange.png",
-        "images/40x40/purple.png",
-        "images/40x40/red.png",
-        "images/40x40/yellow.png"
+        "img/candy0.png",
+        "img/candy1.png",
+        "img/candy2.png",
+        "img/candy3.png",
+        "img/candy4.png",
+        "img/candy5.png"
 };
 // END_GLOBALS ----------------------------------------------------
 
