@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <cstring> // for memcpy
 
 extern "C" {
     #include <array2d.h>
@@ -12,50 +13,70 @@ extern "C" {
 using namespace std;
 
 typedef struct candy {
+    candy() : color(-1), type(0) {}
     int color;
     int type = 0;
 } Candy, *CandyPtr;
 
 class GameModel {
     public:
-        GameModel();
-        GameModel(string filepath);
+        GameModel(const string &filepath);
 
+        // --- Getters ---
         int GetScore() const { return score_; };
         int GetGameID() const { return game_id_; };
-
         int GetMovesRemaining() const;
         int GetMaxScore() const;
-
         int GetSelectedCandyIdx() const;
         int GetCandyColor(const int &idx) const;
-
         int GetBoardSize() const;
         int GetRowLength() const;
         int GetColLength() const;
-        int ConvertToRow(const int &idx) const;
-        int ConvertToCol(const int &idx) const;
-        int ConvertToIdx(const int &row, const int &col) const;
 
+        // --- Other Public Methods ---
         void PrintBoard();
+        void PrintBoard(const Array2D &board);
         bool IsGameOver();
-
         void SetSelectedCandy(int idx);
         bool SwapCandy(const char &dir);
+        void SerializeGame(const string &filepath);
+        void FreeArrays();
+
+    // UTILITIES
+    int ConvertToRow(const int &idx) const;
+    int ConvertToCol(const int &idx) const;
+    int ConvertToIdx(const int &row, const int &col) const;
 
     private:
-        void DeserializeGame(const string &filepath);
-        void SerializeGame(const string &filepath);
+        // --- Deserialize Methods ---
+        bool DeserializeGameInstance(const char* &filepath);
+        bool DeserializeGameDef(json_t* &game_instance);
+        bool DeserializeGameState(json_t* &game_instance);
+        Array2D DeserializeArray2D(json_t* &serialized_array2d, ElDeserializeFnPtr deserialize_function);
+        bool CreateGameboard();
+        CandyPtr MakeCandy(const int &color, const int &type);
+        long CalcMaxScore(Array2D score_board);
 
+        // --- Serialize Methods ---
+        bool SerializeGameInstance(const char* &filepath);
+        Json_ptr SerializeGameDef(void);
+        Json_ptr SerializeGameState(void);
+        Json_ptr SerializeArray2D(Array2D array, json_t *(*serialize_fn)(Array2D));
+
+        // --- Mutators ---
         void SetCandy(const int &idx, const int &color, const int &type);
         void SetCandy(const int &dest_idx, const int &source_idx);
+        bool TrySwap(const int &idx1, const int &idx2);
+
+        // --- Memory Management ---
         bool FreeCandy(const int &idx);
 
-        bool TrySwap(const int &idx1, const int &idx2);
+        // ---Gameplay Methods ---
         bool HasVerticalMatch(const int &idx);
         bool HasHorizontalMatch(const int &idx);
         bool ScanSequence(const int size, vector<int> candy_seq);
 
+        void SettleBoard();
         bool FireBoardLoop();
         bool FindAndFireTemplates(const int &num, const bool &isVertical);
         bool FireTemplate(int idx, const int &num, const int &increment);
@@ -72,10 +93,11 @@ class GameModel {
         int sel_candy_idx_ = -1; //button-selected candy
         int game_id_;
         int total_moves_;
-        int moves_made_;
+        int moves_made_ = 0;
         int num_colors_; //number of colors for this game board
         int max_score_;
         int score_ = 0;
+
         const int NO_CANDY = -1;
         const int MIN_MATCH_LENGTH = 3;
         const int DEFAULT_CANDY_TYPE = 0;
