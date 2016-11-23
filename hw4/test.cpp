@@ -4,11 +4,11 @@
 using namespace std;
 
 int main(int argc, char **argv) {
-    GameModel* b = new GameModel("test25by5.json");
+    GameModel* b = new GameModel("gameExample.json");
 
     b->PrintBoard();
 
-    b->SerializeGame("output.json");
+    b->SerializeGame("output2.json");
 
     return 0;
 }

@@ -94,6 +94,19 @@ void GameModel::PrintBoard() {
     cout << "============" << endl;
 }
 
+void GameModel::PrintBoard(const Array2D &board) {
+    int idx = board->size - 1;
+    for(int i = board->num_rows; i > 0; i--) {
+        for(int j = board->num_cols; j > 0; j--) {
+            int color = (long)board->data[idx];
+            cout << color << " ";
+            idx--;
+        }
+        cout << endl;
+    }
+    cout << "============" << endl;
+}
+
 // Returns true if all squares have been fully fired or
 // if no moves remain, false otherwise
 bool GameModel::IsGameOver() {
@@ -358,7 +371,6 @@ void DeserializeCandyFunction(Array2D array, Json_ptr data) {
         candy->color = jcolor;
         candy->type = jtype;
         array->data[index] = (Json_ptr)(candy);
-        printf("read Candy: [c:%d,t:%d]\n", candy->color, candy->type);
     }
     json_array_clear(data);
 }
@@ -620,9 +632,7 @@ bool GameModel::ScanSequence(const int size, vector<int> candy_seq) {
 // new matches. Executes until board settles or loop has executed
 // a maximum number of times.
 void GameModel::SettleBoard() {
-    int settle_ctr;
-
-    settle_ctr = 0;
+    int settle_ctr = 0;
 
     while(settle_ctr < MAX_SETTLE && FireBoardLoop()) {
         ApplyGravity();

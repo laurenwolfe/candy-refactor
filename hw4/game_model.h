@@ -35,6 +35,7 @@ class GameModel {
 
         // --- Other Public Methods ---
         void PrintBoard();
+        void PrintBoard(const Array2D &board);
         bool IsGameOver();
         void SetSelectedCandy(int idx);
         bool SwapCandy(const char &dir);
@@ -102,7 +103,5 @@ class GameModel {
         const int DEFAULT_CANDY_TYPE = 0;
         const int MAX_SETTLE = 1000;
 };
-
-
 
 #endif // _GAME_MODEL_H_
