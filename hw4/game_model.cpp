@@ -40,7 +40,12 @@ GameModel::GameModel() {
 }
 
 // Constructs a GameModel instance by deserializing game data file
-GameModel::GameModel(string filepath) {
+GameModel::GameModel(const char * &filepath) {
+    extension_board_ = AllocateArray2D();
+    game_board_ = AllocateArray2D();
+    fired_state_ = AllocateArray2D();
+    original_fired_state_ = AllocateArray2D();
+
     DeserializeGame(filepath);
 }
 
@@ -204,9 +209,124 @@ bool GameModel::SwapCandy(const char &dir) {
     return false;
 }
 
-void GameModel::DeserializeGame(const string &filepath) {
-    //TODO
+void GameModel::DeserializeGame(const char * &filepath) {
+    Json_ptr file_data, gamedef, gamestate, extensioncolor, boardstate,
+            boardcandies, curr_boardstate, offset;
+    json_error_t error;
+    size_t index;
+    json_t *value;
 
+    file_data = json_load_file(filepath, 0, &error);
+
+    if(!file_data) {
+        fprintf(stderr, "error: on line %d: %s\n", error.line, error.text);
+        return;
+    }
+
+    gamedef = json_object_get(file_data, "gamedef");
+    gamestate = json_object_get(file_data, "gamestate");
+
+    if(gamedef == nullptr) {
+        return;
+    }
+
+    json_unpack(gamedef, "{s:i, s:o, s:o, s:i, s:i}", "gameid", game_id_,
+                "extensioncolor", extensioncolor, "boardstate", boardstate,
+                "movesallowed", total_moves_, "colors", num_colors_);
+
+    Deserializer(extensioncolor, extension_board_, DeserializeInt);
+    Deserializer(boardstate, original_fired_state_, DeserializeInt);
+
+    if(gamestate == nullptr) {
+        score_ = 0;
+        moves_made_ = 0;
+
+        Deserializer(boardstate, fired_state_, DeserializeInt);
+        MakeGameboard();
+    } else {
+        json_unpack(gamestate, "{s:o, s:o, s:i, s:i, s:[i]}",
+                "boardcandies", boardcandies, "boardstate", curr_boardstate,
+                "movesmade", moves_made_, "currentscore", score_, "extensionoffset", offset);
+
+        Deserializer(boardcandies, game_board_, DeserializeCandy);
+        Deserializer(curr_boardstate, fired_state_, DeserializeInt);
+
+        json_array_foreach(offset, index, value) {
+            extension_offset_.push_back(json_array_get(index));
+        }
+        json_array_clear(offset);
+    }
+}
+
+void GameModel::MakeGameboard() {
+    game_board_->num_rows = original_fired_state_->num_rows;
+    game_board_->num_cols = original_fired_state_->num_cols;
+    game_board_->size = game_board_->num_rows * game_board_->num_cols;
+
+    game_board_->data = (Array_t)malloc(sizeof(Array_t) * (game_board_->size));
+
+    for(int i = 0; i < game_board_->size; i++) {
+        CandyPtr candy_ptr = MakeCandy((long)extension_board_->data[i], DEFAULT_CANDY_TYPE);
+        game_board_->data[i] = (Array_t)candy_ptr;
+    }
+
+    for(int i = 0; i < game_board_->num_cols; i++) {
+        extension_offset_.push_back(game_board_->num_rows);
+    }
+}
+
+void GameModel::Deserializer(Json_ptr object, Array2D array, void (&deserialize_fn)(Array2D, Json_ptr)) {
+    Json_ptr j_obj, data;
+    json_error_t error;
+    int rows, cols;
+
+    json_unpack(j_obj, "{s:i, s:i, s:o}", "rows", &rows,
+                "columns", &cols, "data", &data);
+
+    array->num_rows = rows;
+    array->num_cols = cols;
+    array->size = (cols * rows);
+
+    array->data = (Array_t)malloc(sizeof(Array_t) * (array->size));
+
+    deserialize_fn(array, data);
+
+    json_decref(j_obj);
+}
+
+//Deserialize data in json file provided as a command line argument
+void GameModel::DeserializeInt(Array2D array, Json_ptr data) {
+    Json_ptr value;
+    size_t index;
+    int el_value;
+
+    //Unpack array of integers from JSON object into the Array2D
+    json_array_foreach(data, index, value) {
+        json_unpack(value, "i", &el_value);
+        array->data[index] = (Json_ptr)((long)el_value);
+    }
+    json_array_clear(data);
+}
+
+//Deserialize data in json file provided as a command line argument
+void GameModel::DeserializeCandy(Array2D array, Json_ptr data) {
+    Json_ptr value;
+    size_t index;
+    int color, type;
+
+    //Unpack array of integers from JSON object into the Array2D
+    json_array_foreach(data, index, value) {
+        json_unpack(value, "s:i, s:i", "color", color, "type", type);
+        game_board_->data[index] = (Json_ptr)(MakeCandy(color, type));
+    }
+    json_array_clear(data);
+}
+
+CandyPtr GameModel::MakeCandy(int color, int type) {
+    CandyPtr candy_ptr = (CandyPtr)malloc(sizeof(Candy));
+    candy->color = color;
+    candy->type = type;
+    return candy_ptr;
 }
 
 void GameModel::SerializeGame(const string &filepath) {
@@ -454,6 +574,8 @@ void GameModel::FillFromExtensionBoard() {
         }
     }
 }
+
+
 
 //Deserialize data in json file provided as a command line argument
 void DeserializeFunction(Array2D array, Json_ptr data) {

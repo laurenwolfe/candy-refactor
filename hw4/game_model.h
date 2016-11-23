@@ -19,7 +19,7 @@ typedef struct candy {
 class GameModel {
     public:
         GameModel();
-        GameModel(string filepath);
+        GameModel(const char * &filepath);
 
         int GetScore() const { return score_; };
         int GetGameID() const { return game_id_; };
@@ -44,8 +44,13 @@ class GameModel {
         bool SwapCandy(const char &dir);
 
     private:
-        void DeserializeGame(const string &filepath);
+        void DeserializeGame(const char * &filepath);
         void SerializeGame(const string &filepath);
+        void Deserializer(Json_ptr object, Array2D array, void (&deserialize_fn)(Array2D, Json_ptr));
+        static void DeserializeInt(Array2D array, Json_ptr data);
+        static void DeserializeCandy(Array2D array, Json_ptr data);
+        CandyPtr MakeCandy(int color, int type);
+        void MakeGameboard();
 
         void SetCandy(const int &idx, const int &color, const int &type);
         void SetCandy(const int &dest_idx, const int &source_idx);

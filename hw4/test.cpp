@@ -4,8 +4,9 @@
 using namespace std;
 
 int main(int argc, char **argv) {
-    GameModel b;
+    GameModel b = new GameModel("test25by5.json");
 
+    /*
     b.SetSelectedCandy(11);
     if(b.SwapCandy('N')) {
         cout << "Success!" << endl;
@@ -15,6 +16,7 @@ int main(int argc, char **argv) {
     } else {
         cout << "fail!" << endl;
     }
+     */
 
 
 //    b.SetSelectedCandy(15);
