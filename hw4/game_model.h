@@ -40,6 +40,7 @@ class GameModel {
         void SetSelectedCandy(int idx);
         bool SwapCandy(const char &dir);
         void SerializeGame(const string &filepath);
+        void FreeArrays();
 
     // UTILITIES
     int ConvertToRow(const int &idx) const;
@@ -49,11 +50,11 @@ class GameModel {
     private:
         // --- Deserialize Methods ---
         bool DeserializeGameInstance(const char* &filepath);
-        bool DeserializeGameDef(json_t* game_instance);
-        bool DeserializeGameState(json_t* game_instance);
-        Array2D DeserializeArray2D(json_t* serialized_array2d, ElDeserializeFnPtr deserialize_function);
+        bool DeserializeGameDef(json_t* &game_instance);
+        bool DeserializeGameState(json_t* &game_instance);
+        Array2D DeserializeArray2D(json_t* &serialized_array2d, ElDeserializeFnPtr deserialize_function);
         void CreateGameboard();
-        CandyPtr MakeCandy(int color, int type);
+        CandyPtr MakeCandy(const int &color, const int &type);
         long CalcMaxScore(Array2D score_board);
 
         // --- Serialize Methods ---
@@ -69,7 +70,6 @@ class GameModel {
 
         // --- Memory Management ---
         bool FreeCandy(const int &idx);
-        void FreeModel();
 
         // ---Gameplay Methods ---
         bool HasVerticalMatch(const int &idx);

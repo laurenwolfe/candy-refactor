@@ -9,5 +9,6 @@ GameModel* CreateGameModel(char *filepath) {
 }
 
 void FreeModel(GameModel *gm) {
-
+    gm->FreeArrays();
+    delete gm;
 }

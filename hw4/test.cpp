@@ -4,11 +4,10 @@
 using namespace std;
 
 int main(int argc, char **argv) {
-    GameModel* b = new GameModel("gameExample.json");
+    GameModel* b = new GameModel("json/test25by5.json");
 
-    b->PrintBoard();
-
-    b->SerializeGame("output2.json");
+    b->FreeArrays();
+    delete b;
 
     return 0;
 }

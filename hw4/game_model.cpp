@@ -11,6 +11,8 @@ extern "C" void DeserializeIntFunction(Array2D, Json_ptr);
 extern "C" void DeserializeCandyFunction(Array2D, Json_ptr);
 extern "C" json_t* SerializeCandyFunction(Array2D array);
 extern "C" json_t* SerializeIntFunction(Array2D array);
+extern "C" void FreeCandyFunction(int idx);
+extern "C" void FreeIntFunction(int idx);
 
 /////////////////////////////////////////////////////////////
 /////////// PUBLIC METHODS
@@ -180,7 +182,7 @@ bool GameModel::SwapCandy(const char &dir) {
 /////////////////////////////////////////////////////////////
 
 bool GameModel::DeserializeGameInstance(const char* &filepath){
-    json_t *json_gameinstance;
+    Json_ptr json_gameinstance;
     json_error_t error;
 
     json_gameinstance = json_load_file(filepath, 0, &error); // get json object
@@ -205,20 +207,22 @@ bool GameModel::DeserializeGameInstance(const char* &filepath){
         if(fired_state_ == nullptr)
             return false;
         *(fired_state_) = *(original_fired_state_);
-        fired_state_->data = (Array_t*)calloc(fired_state_->size, sizeof(Array_t));
+        fired_state_->data = (Array_t *)calloc(fired_state_->size, sizeof(Array_t));
         size_t num_bytes_of_data = (fired_state_->size * sizeof(Array_t));
         memcpy(fired_state_->data, original_fired_state_->data, num_bytes_of_data);
     }
+
+    json_decref(json_gameinstance);
 
     SettleBoard();
 
     return true;
 }
 
-bool GameModel::DeserializeGameDef(json_t* game_instance){
-    json_t* json_gamedef;
+bool GameModel::DeserializeGameDef(json_t* &game_instance){
+    Json_ptr json_gamedef, json_extensioncolor, json_boardstate;
     int gameid, movesallowed, colors;
-    json_t *json_extensioncolor, *json_boardstate;
+
     Array2D extensioncolor, boardstate;
 
     json_gamedef = json_object_get(game_instance, "gamedef");
@@ -245,7 +249,7 @@ bool GameModel::DeserializeGameDef(json_t* game_instance){
     return true;
 }
 
-bool GameModel::DeserializeGameState(json_t* game_instance) {
+bool GameModel::DeserializeGameState(json_t* &game_instance) {
     json_t* json_gamestate;
     int movesmade, currentscore;
     json_t *json_boardcandies, *json_boardstate, *json_extensionoffset;
@@ -284,7 +288,7 @@ bool GameModel::DeserializeGameState(json_t* game_instance) {
     return true;
 }
 
-Array2D GameModel::DeserializeArray2D(json_t* serialized_array2d, ElDeserializeFnPtr deserialize_function){
+Array2D GameModel::DeserializeArray2D(json_t* &serialized_array2d, ElDeserializeFnPtr deserialize_function){
     Array2D array_field;
     json_t* data;
     int rows, cols;
@@ -329,7 +333,7 @@ void GameModel::CreateGameboard() {
     }
 }
 
-CandyPtr GameModel::MakeCandy(int color, int type) {
+CandyPtr GameModel::MakeCandy(const int &color, const int &type) {
     CandyPtr candy_ptr = (CandyPtr)malloc(sizeof(Candy));
     candy_ptr->color = color;
     candy_ptr->type = type;
@@ -366,7 +370,7 @@ void DeserializeCandyFunction(Array2D array, Json_ptr data) {
 
     //Unpack array of Candies from JSON object into the Array2D
     json_array_foreach(data, index, value) {
-        CandyPtr candy = (CandyPtr)calloc(1, sizeof(Candy));
+        CandyPtr candy = (CandyPtr)malloc(sizeof(Candy));
         json_unpack(value, "{s:i, s:i}", "color", &jcolor, "type", &jtype);
         candy->color = jcolor;
         candy->type = jtype;
@@ -388,7 +392,6 @@ void GameModel::SerializeGame(const string &filepath) {
     }
 }
 
-// TODO: Include return false anywhere an error could occur
 bool GameModel::SerializeGameInstance(const char* &filepath) {
     Json_ptr json_gamedef, json_gamestate, json_str;
 
@@ -399,8 +402,6 @@ bool GameModel::SerializeGameInstance(const char* &filepath) {
 
     json_dump_file(json_str, filepath, JSON_INDENT(10));
 
-    json_decref(json_gamedef);
-    json_decref(json_gamestate);
     json_decref(json_str);
 
     return true;
@@ -523,6 +524,7 @@ bool GameModel::TrySwap(const int &idx1, const int &idx2) {
 // Memory Management Methods
 /////////////////////////////////////////////////////////////
 
+
 // Free Candy struct
 bool GameModel::FreeCandy(const int &idx) {
     Array_t old_candy = (Array_t) game_board_->data[idx];
@@ -531,8 +533,23 @@ bool GameModel::FreeCandy(const int &idx) {
     return true;
 }
 
-void GameModel::FreeModel() {
+void FreeCandyFunction(Array_t candy_ptr) {
+    free(candy_ptr);
+}
 
+void FreeIntFunction(Array_t ptr) {
+    return;
+}
+
+void GameModel::FreeArrays() {
+    for(int i = 0; i < GetBoardSize(); i++) {
+        FreeCandy(i);
+    }
+
+    DestroyArray2D(extension_board_, &FreeIntFunction);
+    DestroyArray2D(original_fired_state_, &FreeIntFunction);
+    DestroyArray2D(fired_state_, &FreeIntFunction);
+    DestroyArray2D(game_board_, &FreeCandyFunction);
 }
 
 /////////////////////////////////////////////////////////////
