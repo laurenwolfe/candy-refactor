@@ -12,7 +12,7 @@ extern "C" {
 
 // GLOBALS --------------------------------------------------------
 GtkApplication* app;
-static BoardPtr gameboard;
+static GameModel gameboard;
 
 static char* dbutton_image_filenames[] = {
         "up_arrow.png",

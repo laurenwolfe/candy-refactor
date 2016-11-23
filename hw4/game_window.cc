@@ -10,13 +10,14 @@ TODO: Write class description
 static void d_button_callback(GtkWidget* widget, gpointer data) {
     char DIRECTION_CHARS[] = {'N', 'W', 'E', 'S'}; // remove this if it can be defined elsewhere
     //printf("%c\n", DIRECTION_CHARS[(int)data]);
-    boolean swapResult = SwapCandy(gameboard, DIRECTION_CHARS[(int)data]);
+    bool swapResult = gameboard.SwapCandy(DIRECTION_CHARS[(int)data]);
     //printf("swapRes: %d", swapResult);
     refresh_window(app);
 }
 
 static void c_button_callback(GtkWidget* widget, gpointer data) {
-    SetSelectedCandy(gameboard, (int)data);
+    gameboard.SetSelectedCandy((int)data);
+
 }
 
 // ------------------------------------------------------------
@@ -32,9 +33,11 @@ void make_window(GtkApplication* app) {
 
 void fill_window(GtkApplication *app) {
     char remaining_moves[256];
-    int candy, row, col;
+    char score[256];
+    int candy_color, row, col;
 
-    sprintf(remaining_moves, "Moves left: %d", GetMoves(gameboard));
+    sprintf(remaining_moves, "Moves left: %d", gameboard.GetMovesRemaining());
+    sprintf(score, "Score: %d", gameboard.GetScore());
 
     // declare & initialize window components
     GtkWidget* window = gtk_application_get_active_window(app);
@@ -42,6 +45,7 @@ void fill_window(GtkApplication *app) {
     GtkWidget* candy_grid = gtk_grid_new();
     GtkWidget* interface_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     GtkWidget* move_counter = gtk_label_new(remaining_moves);
+    GtkWidget* score_counter = gtk_label_new(score);
     GtkWidget* dpad_grid = gtk_grid_new();
 
     // assemble window components
@@ -49,17 +53,18 @@ void fill_window(GtkApplication *app) {
     gtk_box_pack_start(GTK_BOX(top_lvl_container), candy_grid, TRUE, TRUE, 0);
     gtk_box_pack_end(GTK_BOX(top_lvl_container), interface_container, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(interface_container), move_counter, FALSE, FALSE, 20);
+    gtk_box_pack_start(GTK_BOX(interface_container), score_counter, FALSE, FALSE, 20);
     gtk_box_pack_start(GTK_BOX(interface_container), dpad_grid, FALSE, FALSE, 0);
 
-    for(int i = 0; i < GetBoardSize(gameboard); i++) {
-        row = GetRow(gameboard, i);
-        col = GetCol(gameboard, i);
+    for(int i = 0; i < gameboard.GetBoardSize(); i++) {
+        row = gameboard.ConvertToRow(i);
+        col = gameboard.ConvertToCol(i);
 
-        GetCandy(gameboard, i, &candy);
+        candy_color = gameboard.GetCandyColor(i);
 
         // create button, image and place in grid
         GtkWidget* currButton = gtk_toggle_button_new();
-        GtkWidget* currImage = gtk_image_new_from_file(candy_image_filenames[candy]);
+        GtkWidget* currImage = gtk_image_new_from_file(candy_image_filenames[candy_color]);
         gtk_button_set_image((GtkButton*)currButton, currImage);
         gtk_grid_attach(GTK_GRID(candy_grid), currButton, col, row, 1, 1);
 
@@ -88,7 +93,7 @@ void refresh_window(GtkApplication* app) {
 
 static void open(GApplication *app, GFile **files, gint n_files, const gchar *hint) {
     // initialize game board
-    GameBoard gb =GameModel(g_file_get_path(files[0]));
+    GameModel gameboard = GameModel(g_file_get_path(files[0]));
 
     make_window(app);
     fill_window(app);
